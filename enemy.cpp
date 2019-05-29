@@ -16,6 +16,9 @@
 #include "sound.h"
 #include "debugproc.h"
 #include "timer.h"
+
+#include "field_star.h"
+#include "hitjudge.h"
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
@@ -51,6 +54,7 @@ int AI3();
 //*****************************************************************************
 LPDIRECT3DTEXTURE9	g_pD3DTextureEnemy;		// テクスチャ読み込み場所
 ENEMY				g_enemy;					// エネミーワーク
+extern PLAYER FieldStar[NUM_SKY];
 
 static int g_conId = 0;//コントロールID
  
@@ -551,6 +555,9 @@ void UpdateEnemy(void)
 		{
 			g_enemy.part[0].srt.rot.y += D3DX_PI * 2.0f;
 		}
+
+		g_enemy.move = CollideGeo(&g_enemy.part->srt, &FieldStar[0].part->srt, g_enemy.move, FieldStar[0].part);
+		//(SRT* m_A, SRT* m_B, D3DXVECTOR3 move, PART* pThingB3D);
 
 		/// 位置移動を反映
 		g_enemy.part[0].srt.pos.x += g_enemy.move.x;//体に反映

@@ -36,9 +36,11 @@ struct PART
 	LPD3DXBUFFER		pMatBuff;			// メッシュのマテリアル情報を格納
 	DWORD				nNumMat;			// マテリアル情報の総数
 	LPD3DXMESH			pMesh;				// ID3DXMeshインターフェイスへのポインタ
+	LPDIRECT3DTEXTURE9 pD3DTextureModel;
 
 	SRT			srt;		//Scaling Rotation Translation
 	D3DXMATRIX	mtxWorld;
+	D3DXMATRIX  mtxRot;		// 樋沼追加
 	PART		*parent;
 	bool		use;
 };
