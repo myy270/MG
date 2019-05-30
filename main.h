@@ -82,6 +82,16 @@ typedef enum				//!!!
 	MODE_MAX
 } MODE;
 
+enum STAGE
+{
+	STAGE01 = 0,
+	STAGE02,
+	STAGE03,
+	STAGE04,
+	STAGE05,
+	STAGE_MAX
+};
+
 enum OBJECT
 {
 	OBJECT_PLAYER,

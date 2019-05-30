@@ -54,7 +54,7 @@ int AI3();
 //*****************************************************************************
 LPDIRECT3DTEXTURE9	g_pD3DTextureEnemy;		// テクスチャ読み込み場所
 ENEMY				g_enemy;					// エネミーワーク
-extern PLAYER FieldStar[NUM_SKY];
+extern MODEL FieldStar[NUM_FIELD];
 
 static int g_conId = 0;//コントロールID
  
@@ -556,7 +556,8 @@ void UpdateEnemy(void)
 			g_enemy.part[0].srt.rot.y += D3DX_PI * 2.0f;
 		}
 
-		g_enemy.move = CollideGeo(&g_enemy.part->srt, &FieldStar[0].part->srt, g_enemy.move, FieldStar[0].part);
+		//壁の当たり判定
+		g_enemy.move = CollideGeo(&g_enemy.part->srt.pos, g_enemy.move, &FieldStar[0].model3d.pMesh);
 		//(SRT* m_A, SRT* m_B, D3DXVECTOR3 move, PART* pThingB3D);
 
 		/// 位置移動を反映

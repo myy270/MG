@@ -13,12 +13,18 @@
 
 
 //*************キャラクターデータ変数の用意*****************************
-PLAYER	FieldStar[NUM_SKY];			//プレイヤーキャラクタ構造体
+MODEL	FieldStar[NUM_FIELD];			//プレイヤーキャラクタ構造体
+
+using namespace warpzoneNS;
+extern PLAYER g_player;
+extern ENEMY g_enemy;
+
 
 //*********************モデルデータファイル名配列********************
 const char* FieldStarModelData[] = 
 {
 	"data/MODEL/sample_field.x",
+	"data/MODEL/sample_warpzone.x"
 };
 
 
@@ -32,58 +38,47 @@ HRESULT InitFieldStar(void)
 	D3DXMATRIX mtxScl,/*mtxRot,*/ mtxTranslate;
 
 	// キャラクタの位置・回転・スケールなどの初期設定
-	for (int i = 0; i < NUM_SKY; i++)
+	for (int i = 0; i < NUM_FIELD; i++)
 	{
 
-			FieldStar[i].part[0].srt.pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);//
-			FieldStar[i].part[0].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);//
+		initModelPos(&FieldStar[i].pos, i);
+		FieldStar[i].rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);//
 
-			FieldStar[i].part[0].use = TRUE;
-			FieldStar[i].part[0].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
+		FieldStar[i].use = TRUE;
+		FieldStar[i].scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 
-			// ワールドマトリックスの初期化
-			D3DXMatrixIdentity(&FieldStar[i].part[0].mtxWorld);
+		// ワールドマトリックスの初期化
+		D3DXMatrixIdentity(&FieldStar[i].mtxWorld);
 
-			// スケールを行列にしてワールド行列（始めは単位行列）と乗算
-			temp = FieldStar[i].part[0].srt.scl;
-			D3DXMatrixScaling(&mtxScl, temp.x, temp.y, temp.z);
-			D3DXMatrixMultiply(&FieldStar[i].part[0].mtxWorld, &FieldStar[i].part[0].mtxWorld, &mtxScl);
+		// スケールを行列にしてワールド行列（始めは単位行列）と乗算
+		temp = FieldStar[i].scl;
+		D3DXMatrixScaling(&mtxScl, temp.x, temp.y, temp.z);
+		D3DXMatrixMultiply(&FieldStar[i].mtxWorld, &FieldStar[i].mtxWorld, &mtxScl);
 
-			// 回転を行列にしてワールド行列と乗算
-			temp = FieldStar[i].part[0].srt.rot;
-			D3DXMatrixRotationYawPitchRoll(&FieldStar[i].part[0].mtxRot, temp.y, temp.x, temp.z);
-			D3DXMatrixMultiply(&FieldStar[i].part[0].mtxWorld, &FieldStar[i].part[0].mtxWorld, &FieldStar[i].part[0].mtxRot);
+		// 回転を行列にしてワールド行列と乗算
+		temp = FieldStar[i].rot;
+		D3DXMatrixRotationYawPitchRoll(&FieldStar[i].mtxRot, temp.y, temp.x, temp.z);
+		D3DXMatrixMultiply(&FieldStar[i].mtxWorld, &FieldStar[i].mtxWorld, &FieldStar[i].mtxRot);
 
-			// 移動を行列にしてワールド行列と乗算
-			temp =FieldStar[i].part[0].srt.pos;
-			D3DXMatrixTranslation(&mtxTranslate, temp.x, temp.y, temp.z);
-			D3DXMatrixMultiply(&FieldStar[i].part[0].mtxWorld, &FieldStar[i].part[0].mtxWorld, &mtxTranslate);
+		// 移動を行列にしてワールド行列と乗算
+		temp =FieldStar[i].pos;
+		D3DXMatrixTranslation(&mtxTranslate, temp.x, temp.y, temp.z);
+		D3DXMatrixMultiply(&FieldStar[i].mtxWorld, &FieldStar[i].mtxWorld, &mtxTranslate);
 
-			// 完成したワールドマトリックスをDirectXへセット
-			pDevice->SetTransform(D3DTS_WORLD, &FieldStar[i].part[0].mtxWorld);
-
+		// 完成したワールドマトリックスをDirectXへセット
+		pDevice->SetTransform(D3DTS_WORLD, &FieldStar[i].mtxWorld);
 
 		//モデルデータの初期設定
-		for (int i = 0; i < NUM_SKYMODEL; i++)
+		for (int i = 0; i < NUM_FIELD; i++)
 		{
-			FieldStar[i].part[0].pD3DTextureModel = NULL;
-			FieldStar[i].part[0].pMesh = NULL;
-			FieldStar[i].part[0].pMatBuff = NULL;
-			FieldStar[i].part[0].nNumMat = 0;
-
-
-			if (D3D_OK != D3DXLoadMeshFromX(FieldStarModelData[0],			// 読み込むモデルファイル名(Xファイル)
-												D3DXMESH_SYSTEMMEM,		// メッシュの作成オプションを指定
-												pDevice,				// IDirect3DDevice9インターフェイスへのポインタ
-												NULL,					// 隣接性データを含むバッファへのポインタ
-												&FieldStar[0].part[0].pMatBuff,	// マテリアルデータを含むバッファへのポインタ
-												NULL,				// エフェクトインスタンスの配列を含むバッファへのポインタ
-												&FieldStar[0].part[0].nNumMat,		// D3DXMATERIAL構造体の数
-												&FieldStar[0].part[0].pMesh))	// ID3DXMeshインターフェイスへのポインタのアドレス
+			if (i == 0)
 			{
-				return E_FAIL;
+				initModeldata(&FieldStar[i].model3d, FieldStarModelData[0]);
 			}
-			
+			else
+			{
+				initModeldata(&FieldStar[i].model3d, FieldStarModelData[1]);
+			}
 		}
 	}
 
@@ -105,22 +100,22 @@ void UninitFieldStar(void)
 
 	for(int i=0; i< NUM_SKYMODEL; i++)
 	{
-		if( NULL !=FieldStar[i].part[0].pD3DTextureModel)
+		if( NULL !=FieldStar[i].model3d.pD3DTextureModel)
 		{
-			FieldStar[i].part[0].pD3DTextureModel->Release();
-			FieldStar[i].part[0].pD3DTextureModel = NULL;
+			FieldStar[i].model3d.pD3DTextureModel->Release();
+			FieldStar[i].model3d.pD3DTextureModel = NULL;
 		}
 
-		if( NULL !=FieldStar[i].part[0].pMesh)
+		if( NULL !=FieldStar[i].model3d.pMesh)
 		{
-			FieldStar[i].part[0].pMesh->Release();
-			FieldStar[i].part[0].pMesh = NULL;
+			FieldStar[i].model3d.pMesh->Release();
+			FieldStar[i].model3d.pMesh = NULL;
 		}
 
-		if( NULL !=FieldStar[i].part[0].pMatBuff)
+		if( NULL !=FieldStar[i].model3d.pMatBuff)
 		{
-			FieldStar[i].part[0].pMatBuff->Release();
-			FieldStar[i].part[0].pMatBuff = NULL;
+			FieldStar[i].model3d.pMatBuff->Release();
+			FieldStar[i].model3d.pMatBuff = NULL;
 		}
 	}
 
@@ -132,7 +127,10 @@ void UninitFieldStar(void)
 //=============================================================================
 void UpdateFieldStar(void)
 {
-
+	for (int i = 1; i < NUM_FIELD; i++)
+	{
+		playerWarp(i);
+	}
 }
 
 
@@ -146,52 +144,49 @@ void DrawFieldStarModel(void)
 	D3DXMATERIAL *pD3DXMat;
 	D3DMATERIAL9 matDef;
 
-
-
 	// 現在設定されているマテリアルを取得して保存
 	pDevice->GetMaterial(&matDef);
 
-
 	//*************************全てのキャラクターを表示************************
-	for(int i=0; i<NUM_SKY; i++)
+	for(int i=0; i<NUM_FIELD; i++)
 	{
 		D3DXVECTOR3	temp;
 
 		// ワールドマトリックスの初期化
-		D3DXMatrixIdentity(&FieldStar[i].part[0].mtxWorld);
+		D3DXMatrixIdentity(&FieldStar[i].mtxWorld);
 
 		// スケールを行列にしてワールド行列（始めは単位行列）と乗算
-		temp = FieldStar[i].part[0].srt.scl;
+		temp = FieldStar[i].scl;
 		D3DXMatrixScaling(&mtxScl, temp.x, temp.y, temp.z);
-		D3DXMatrixMultiply(&FieldStar[i].part[0].mtxWorld, &FieldStar[i].part[0].mtxWorld, &mtxScl);
+		D3DXMatrixMultiply(&FieldStar[i].mtxWorld, &FieldStar[i].mtxWorld, &mtxScl);
 
 		// 回転を行列にしてワールド行列と乗算
-		temp = FieldStar[i].part[0].srt.rot;
-		D3DXMatrixRotationYawPitchRoll(&FieldStar[i].part[0].mtxRot, temp.y, temp.x, temp.z);
-		D3DXMatrixMultiply(&FieldStar[i].part[0].mtxWorld, &FieldStar[i].part[0].mtxWorld, &FieldStar[i].part[0].mtxRot);
+		temp = FieldStar[i].rot;
+		D3DXMatrixRotationYawPitchRoll(&FieldStar[i].mtxRot, temp.y, temp.x, temp.z);
+		D3DXMatrixMultiply(&FieldStar[i].mtxWorld, &FieldStar[i].mtxWorld, &FieldStar[i].mtxRot);
 
 		// 移動を行列にしてワールド行列と乗算
-		temp =FieldStar[i].part[0].srt.pos;
+		temp =FieldStar[i].pos;
 		D3DXMatrixTranslation(&mtxTranslate, temp.x, temp.y, temp.z);
-		D3DXMatrixMultiply(&FieldStar[i].part[0].mtxWorld, &FieldStar[i].part[0].mtxWorld, &mtxTranslate);
+		D3DXMatrixMultiply(&FieldStar[i].mtxWorld, &FieldStar[i].mtxWorld, &mtxTranslate);
 
 		// 完成したワールドマトリックスをDirectXへセット
-		pDevice->SetTransform(D3DTS_WORLD, &FieldStar[i].part[0].mtxWorld);
+		pDevice->SetTransform(D3DTS_WORLD, &FieldStar[i].mtxWorld);
 
 		// モデルのマテリアル情報に対するポインタを取得
-		pD3DXMat = (D3DXMATERIAL*)FieldStar[i].part[0].pMatBuff->GetBufferPointer();
+		pD3DXMat = (D3DXMATERIAL*)FieldStar[i].model3d.pMatBuff->GetBufferPointer();
 
 		//モデルの情報に従ってモデルを構成するオブジェクトの数だけ繰り返す
-		for (int nCntMat = 0; nCntMat < (int)FieldStar[i].part[0].nNumMat; nCntMat++)
+		for (int nCntMat = 0; nCntMat < (int)FieldStar[i].model3d.nNumMat; nCntMat++)
 		{
 			// オブジェクトのマテリアルの設定
 			pDevice->SetMaterial(&pD3DXMat[nCntMat].MatD3D);
 
 			// オブジェクトのテクスチャの設定
-			pDevice->SetTexture(0, FieldStar[i].part[0].pD3DTextureModel);
+			pDevice->SetTexture(0, FieldStar[i].model3d.pD3DTextureModel);
 
 			// オブジェクトの描画
-			FieldStar[i].part[0].pMesh->DrawSubset(nCntMat);
+			FieldStar[i].model3d.pMesh->DrawSubset(nCntMat);
 		}
 	}
 
@@ -200,3 +195,71 @@ void DrawFieldStarModel(void)
 
 }
 
+void playerWarp( int i)
+{
+	D3DXVECTOR2 A = D3DXVECTOR2(g_enemy.part[0].srt.pos.x, g_enemy.part[0].srt.pos.z);
+	D3DXVECTOR2 B = D3DXVECTOR2(FieldStar[i].pos.x, FieldStar[i].pos.z);
+	if (distanceVec(A, B) <= into_warpzone)
+	{
+		// ワープの具体的な処理
+		int a = 0;
+		a++;
+	}
+}
+
+float distanceVec(D3DXVECTOR2 A, D3DXVECTOR2 B)
+{
+	D3DXVECTOR2 dis;
+	dis = B - A;
+	return D3DXVec2Length(&dis);
+}
+
+
+
+ void initModelPos(D3DXVECTOR3* pos, int i)
+{
+	switch(i)
+	{
+	case 0:
+		*pos = warp0;
+		break;
+	case 1:
+		*pos = warp1;
+		break;
+	case 2:
+		*pos = warp2;
+		break;
+	case 3:
+		*pos = warp3;
+		break;
+	case 4:
+		*pos = warp4;
+		break;
+	case 5:
+		*pos = warp5;
+		break;
+	}
+}
+
+HRESULT initModeldata(MODEL3D* model3d, const char* modeldata)
+ {
+	 LPDIRECT3DDEVICE9 pDevice = GetDevice();
+
+	 model3d->pD3DTextureModel = NULL;
+	 model3d->pMesh = NULL;
+	 model3d->pMatBuff = NULL;
+	 model3d->nNumMat = 0;
+
+	 if (D3D_OK != D3DXLoadMeshFromX(modeldata,			// 読み込むモデルファイル名(Xファイル)
+		 D3DXMESH_SYSTEMMEM,		// メッシュの作成オプションを指定
+		 pDevice,				// IDirect3DDevice9インターフェイスへのポインタ
+		 NULL,					// 隣接性データを含むバッファへのポインタ
+		 &model3d->pMatBuff,	// マテリアルデータを含むバッファへのポインタ
+		 NULL,			 // エフェクトインスタンスの配列を含むバッファへのポインタ
+		 &model3d->nNumMat,		// D3DXMATERIAL構造体の数
+		 &model3d->pMesh))	// ID3DXMeshインターフェイスへのポインタのアドレス
+	 {
+		 return E_FAIL;
+	 }
+	 return S_OK;
+ }

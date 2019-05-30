@@ -41,7 +41,7 @@
 //}
 
 //レイによる衝突判定　レイが相手メッシュと交差する場合は、pfDistanceに距離を、pvNormalに衝突面の法線を入れてtrueを返す
-BOOL Collide(D3DXVECTOR3 vStart, D3DXVECTOR3 vDir, FLOAT* pfDistance, D3DXVECTOR3* pvNormal, PART *pThing3D, D3DXMATRIX *tempMatrix)
+BOOL Collide(D3DXVECTOR3 vStart, D3DXVECTOR3 vDir, FLOAT* pfDistance, D3DXVECTOR3* pvNormal, LPD3DXMESH *pThing3D, D3DXMATRIX *tempMatrix)
 {
 	BOOL boHit = false;
 	D3DXMATRIX mWorld;
@@ -53,12 +53,12 @@ BOOL Collide(D3DXVECTOR3 vStart, D3DXVECTOR3 vDir, FLOAT* pfDistance, D3DXVECTOR
 
 	DWORD dwPolyIndex;
 
-	D3DXIntersect(pThing3D->pMesh, &vStart, &vDir, &boHit, &dwPolyIndex, NULL, NULL, pfDistance, NULL, NULL);
+	D3DXIntersect(*pThing3D, &vStart, &vDir, &boHit, &dwPolyIndex, NULL, NULL, pfDistance, NULL, NULL);
 	if (boHit)
 	{
 		//交差しているポリゴンの頂点を見つける
 		D3DXVECTOR3 vVertex[3];
-		FindVerticesOnPoly(pThing3D->pMesh, dwPolyIndex, vVertex);
+		FindVerticesOnPoly(*pThing3D, dwPolyIndex, vVertex);
 		D3DXPLANE p;
 		//その頂点から平面方程式を得る
 		D3DXPlaneFromPoints(&p, &vVertex[0], &vVertex[1], &vVertex[2]);
@@ -113,7 +113,7 @@ HRESULT FindVerticesOnPoly(LPD3DXMESH pMesh, DWORD dwPolyIndex, D3DXVECTOR3* pvV
 }
 
 
-D3DXVECTOR3 CollideGeo(SRT* m_A, SRT* m_B, D3DXVECTOR3 move, PART* pThingB3D)
+D3DXVECTOR3 CollideGeo(D3DXVECTOR3* m_A, D3DXVECTOR3 move, LPD3DXMESH* pThingB3D)
 {
 	//MODEL *Player = GetPlayer(0);
 
@@ -123,13 +123,13 @@ D3DXVECTOR3 CollideGeo(SRT* m_A, SRT* m_B, D3DXVECTOR3 move, PART* pThingB3D)
 	D3DXMATRIX tempMatrix;
 	D3DXMatrixIdentity(&tempMatrix);
 
-	if (Collide(m_A->pos, move, &fDistance, &vNormal, pThingB3D, &tempMatrix) == TRUE && fDistance <= HIT_SKYDOME_FIRST)
+	if (Collide(*m_A, move, &fDistance, &vNormal, pThingB3D, &tempMatrix) == TRUE && fDistance <= HIT_SKYDOME_FIRST)
 	{
 		//当たり状態なので、滑らせる
 		move = Slip(move, vNormal);//滑りベクトルを計算
 	
 		//滑りベクトル先の地面突起とのレイ判定 ２重に判定	
-		if (Collide(m_A->pos, move, &fDistance, &vNormal, pThingB3D, &tempMatrix) && fDistance <= HIT_SKYDOME_SECOND)
+		if (Collide(*m_A, move, &fDistance, &vNormal, pThingB3D, &tempMatrix) && fDistance <= HIT_SKYDOME_SECOND)
 		{
 			//２段目の当たり状態なので、滑らせる おそらく上がる方向		
 			move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);//滑りベクトルを計算

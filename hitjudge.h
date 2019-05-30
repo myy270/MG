@@ -32,14 +32,15 @@ HRESULT FindVerticesOnPoly(LPD3DXMESH pMesh, DWORD dwPolyIndex, D3DXVECTOR3* pvV
 
 // 正面に対象のメッシュがある？
 // その距離は？
-BOOL Collide(D3DXVECTOR3 vStart, D3DXVECTOR3 vDir, FLOAT* pfDistance, D3DXVECTOR3* pvNormal, PART *pThing3D, D3DXMATRIX *tempMatrix);
+BOOL Collide(D3DXVECTOR3 vStart, D3DXVECTOR3 vDir, FLOAT* pfDistance, D3DXVECTOR3* pvNormal, LPD3DXMESH *pThing3D, D3DXMATRIX *tempMatrix);
 
 // ドームとの当たり判定をCollide()を使い判定する
 // 1回目はベクトルをズラす
 // 2回目はmoveを0にする
-D3DXVECTOR3 CollideGeo(SRT* m_A, SRT* m_B, D3DXVECTOR3 move, PART* pThingB3D);
-#define HIT_SKYDOME_FIRST (15.0)
-#define HIT_SKYDOME_SECOND (14.9)
+// D3DXVECTOR3 CollideGeo(D3DXVECTOR3* m_A, D3DXVECTOR3 move, PART* pThingB3D);
+D3DXVECTOR3 CollideGeo(D3DXVECTOR3* m_A, D3DXVECTOR3 move, LPD3DXMESH* pThingB3D);
+#define HIT_SKYDOME_FIRST (10.0)
+#define HIT_SKYDOME_SECOND (9.9)
 // 一定値ズラす
 D3DXVECTOR3 Slip(D3DXVECTOR3 L, D3DXVECTOR3 N);
 

@@ -67,6 +67,8 @@ struct PLAYER
 	int stateTime;
 };
 
+
+
 enum PART_ID
 {	
 	BODY,
