@@ -13,7 +13,7 @@
 #include "effect.h"
 #include "item.h"
 #include "score.h"
-#include "sound.h"
+//#include "sound.h"
 #include "debugproc.h"
 #include "timer.h"
 //*****************************************************************************
@@ -618,7 +618,7 @@ void UpdateEnemy(void)
 				SetBullet(pos, move, 4.0f, 4.0f, 60 * 4);
 
 				// SEçƒê∂
-				PlaySound(SOUND_LABEL_SE_SHOT);
+				//PlaySound(SOUND_LABEL_SE_SHOT);
 			}
 		}
 	}
@@ -704,7 +704,7 @@ void UpdateEnemy(void)
 							ChangeScore(100);
 
 							// SEçƒê∂
-							PlaySound(SOUND_LABEL_SE_COIN);
+							//PlaySound(SOUND_LABEL_SE_COIN);
 						}
 
 						// ÉAÉCÉeÉÄè¡ãé

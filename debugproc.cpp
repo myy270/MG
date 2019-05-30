@@ -23,7 +23,7 @@
 LPD3DXFONT	g_pD3DXFont = NULL;			// フォントへのポインタ
 char		g_aStrDebug[1024] = {"\0"};	// デバッグ情報
 
-bool		g_bDispDebug = 0;	// デバッグ表示ON/OFF
+bool		g_bDispDebug = 1;	// デバッグ表示ON/OFF
 
 //=============================================================================
 // デバッグ表示処理の初期化

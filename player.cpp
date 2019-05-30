@@ -12,18 +12,23 @@
 #include "effect.h"
 #include "item.h"
 #include "score.h"
-#include "sound.h"
+//#include "sound.h"
 #include "debugproc.h"
 #include "timer.h"
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define	BODY_PLAYER		"data/MODEL/bearBody.x"	// 読み込むモデル名
-#define	HEAD_PLAYER		"data/MODEL/bearHead.x"	// 読み込むモデル名
-#define	HAND_PLAYER		"data/MODEL/bearHand.x"	// 読み込むモデル名
-#define	LEG_PLAYER		"data/MODEL/bearLeg.x"	// 読み込むモデル名
-#define	ICE_BLOCK		"data/MODEL/iceBlock.x"		// 読み込むモデル名
+//#define	BODY_PLAYER		"data/MODEL/bearBody.x"	// 読み込むモデル名
+//#define	HEAD_PLAYER		"data/MODEL/bearHead.x"	// 読み込むモデル名
+//#define	HAND_PLAYER		"data/MODEL/bearHand.x"	// 読み込むモデル名
+//#define	LEG_PLAYER		"data/MODEL/bearLeg.x"	// 読み込むモデル名
+//#define	ICE_BLOCK		"data/MODEL/iceBlock.x"		// 読み込むモデル名
 
+#define	BODY_PLAYER		"data/mere god/body.x"	// 読み込むモデル名
+#define	HEAD_PLAYER		"data/mere god/head.x"	// 読み込むモデル名
+#define	HAND_PLAYER		"data/mere god/hand.x"	// 読み込むモデル名
+#define	LEG_PLAYER		"data/mere god/leg.x"	// 読み込むモデル名
+#define	ICE_BLOCK		"data/MODEL/iceBlock.x"		// 読み込むモデル名
 
 
 #define	PLAYER_RADIUS		(15.0f)						// 半径
@@ -402,10 +407,10 @@ void UpdatePlayer(void)
 {
 #ifdef _DEBUG
 	//モードの入力
-	//if (GetKeyboardPress(DIK_1))
-	//{
-	//	g_mode = MODE_PLAY;
-	//}
+	if (GetKeyboardPress(DIK_1))
+	{
+		g_mode = MODE_PLAY;
+	}
 	if (GetKeyboardPress(DIK_2))
 	{
 		g_mode = MODE_EDIT;
@@ -798,7 +803,7 @@ void UpdatePlayer(void)
 				SetBullet(pos, move, 4.0f, 4.0f, 60 * 4);
 
 				// SE再生
-				PlaySound(SOUND_LABEL_SE_SHOT);
+				//PlaySound(SOUND_LABEL_SE_SHOT);
 			}
 		}
 	}
@@ -884,7 +889,7 @@ void UpdatePlayer(void)
 							ChangeScore2(100);
 
 							// SE再生
-							PlaySound(SOUND_LABEL_SE_COIN);
+							//PlaySound(SOUND_LABEL_SE_COIN);
 						}
 
 						// アイテム消去

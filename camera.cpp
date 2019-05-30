@@ -65,17 +65,17 @@ HRESULT InitCamera(void)
 	g_cutScene = false;
 
 
-	if (GetCursorIdx() == 0)
-	{
+	/*if (GetCursorIdx() == 0)
+	{*/
 		g_cameraMode = CAMERA_MODE_NEAR;//デフォルト設定
 		g_playMode = PLAY_MODE_SINGLE;//デフォルト設定
 
-	}
-	else if (GetCursorIdx() == 1)
-	{
-		g_cameraMode = CAMERA_MODE_FAR;//デフォルト設定
-		g_playMode = PLAY_MODE_DOUBLE;//デフォルト設定
-	}
+	//}
+	//else if (GetCursorIdx() == 1)
+	//{
+	//	g_cameraMode = CAMERA_MODE_FAR;//デフォルト設定
+	//	g_playMode = PLAY_MODE_DOUBLE;//デフォルト設定
+	//}
 
 
 	if (g_cameraMode == CAMERA_MODE_NEAR)

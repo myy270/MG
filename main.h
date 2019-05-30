@@ -21,7 +21,7 @@
 
 #define DIRECTINPUT_VERSION (0x0800)
 #include "dinput.h"			// DirectInput関連のヘッダー
-#include "xaudio2.h"		// XAudio2関連のヘッダー !!!
+//#include "xaudio2.h"		// XAudio2関連のヘッダー !!!
 
 
 //*****************************************************************************

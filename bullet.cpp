@@ -12,7 +12,7 @@
 #include "explosion.h"
 #include "player.h"
 #include "life.h"
-#include "sound.h"
+//#include "sound.h"
 
 //*****************************************************************************
 // É}ÉNÉçíËã`
@@ -158,7 +158,7 @@ void UpdateBullet(void)
 					DeleteBullet(nCntBullet);
 
 					// SEçƒê∂
-					PlaySound(SOUND_LABEL_SE_EXPLOSION);
+					//PlaySound(SOUND_LABEL_SE_EXPLOSION);
 				}
 
 				float fSizeX = 8.0f + (g_aBullet[nCntBullet].pos.y - 4.0f) * 0.05f;
