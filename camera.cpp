@@ -23,7 +23,7 @@
 #define	RATE_CHASE_CAMERA_P	(0.35f)					// カメラの視点への補正係数
 #define	RATE_CHASE_CAMERA_R	(0.20f)					// カメラの注視点への補正係数
 
-#define	CHASE_HEIGHT_P_NEAR		(400.0f)				// 追跡時の視点の高さ
+#define	CHASE_HEIGHT_P_NEAR		(200.0f)				// 追跡時の視点の高さ
 #define	CHASE_HEIGHT_P_FAR		(1700.0f)				// 追跡時の視点の高さ
 
 #define	RADIUS_NEAR		(400.0f)				// 視点と注視点のxoz面の距離
@@ -129,25 +129,25 @@ void UpdateCamera(void)
 
 		}
 
-		{//これを消すと、カメラが自由に移動できる
-			if (g_cameraMode == CAMERA_MODE_NEAR)
-			{
-				g_chaseHightP = CHASE_HEIGHT_P_NEAR;
-				g_fLengthIntervalCamera = RADIUS_NEAR;
+		//{//これを消すと、カメラが自由に移動できる
+		//	if (g_cameraMode == CAMERA_MODE_NEAR)
+		//	{
+		//		g_chaseHightP = CHASE_HEIGHT_P_NEAR;
+		//		g_fLengthIntervalCamera = RADIUS_NEAR;
 
-				if (g_cutScene)
-				{//勝利時のカットシーン
-					g_chaseHightP = 100.0f;
-					g_fLengthIntervalCamera = 200.0f;
-				}
+		//		if (g_cutScene)
+		//		{//勝利時のカットシーン
+		//			g_chaseHightP = 100.0f;
+		//			g_fLengthIntervalCamera = 200.0f;
+		//		}
 
-			}
-			else if (g_cameraMode == CAMERA_MODE_FAR)
-			{
-				g_chaseHightP = CHASE_HEIGHT_P_FAR;
-				g_fLengthIntervalCamera = RADIUS_FAR;
-			}
-		}
+		//	}
+		//	else if (g_cameraMode == CAMERA_MODE_FAR)
+		//	{
+		//		g_chaseHightP = CHASE_HEIGHT_P_FAR;
+		//		g_fLengthIntervalCamera = RADIUS_FAR;
+		//	}
+		//}
 	}
 
 #ifdef _DEBUG

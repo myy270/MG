@@ -30,6 +30,8 @@
 #define	LEG_PLAYER		"data/mere god/leg.x"	// 読み込むモデル名
 #define	ICE_BLOCK		"data/MODEL/iceBlock.x"		// 読み込むモデル名
 
+#define	TEXTURE_PLAYER	"data/mere god/knight.png"		// 読み込むモデル名
+
 
 #define	PLAYER_RADIUS		(15.0f)						// 半径
 
@@ -40,6 +42,7 @@
 #define	RATE_ROTATE_PLAYER	(0.10f)						// 回転慣性係数
 
 #define	VALUE_MOVE_BULLET	(7.5f)						// 弾の移動速度
+
 
 //*****************************************************************************
 // プロトタイプ宣言
@@ -277,9 +280,9 @@ HRESULT InitPlayer(void)
 		{//初期値 pos.yは足が地面に触れるような数値
 		case 0:
 		{//体
-			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);//xyz必ず同じように
+			g_player.part[i].srt.scl = D3DXVECTOR3(2.0f, 2.0f, 2.0f);//xyz必ず同じように
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 22.4f, 0.0f);//足が地面に触れるよう、15.0
+			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 27.0f, 0.0f);//足が地面に触れるよう
 
 			g_player.part[i].parent = NULL;//体の親はNULLにする
 			break;
@@ -288,7 +291,7 @@ HRESULT InitPlayer(void)
 		{//頭
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 6.5f, 0.0f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 7.06f,  -0.09f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -297,7 +300,7 @@ HRESULT InitPlayer(void)
 		{//左手
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(5.0f, 5.0f, 0.0f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(7.93f, 4.8f, 0.49f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -306,7 +309,7 @@ HRESULT InitPlayer(void)
 		{//右手
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, D3DX_PI, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(-5.0f, 5.0f, 0.0f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(-7.93f, 4.8f, 0.49f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -315,7 +318,7 @@ HRESULT InitPlayer(void)
 		{//左足
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(3.064f, -4.873f, -0.409f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(2.2f, -7.23f, 0.0f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -324,7 +327,7 @@ HRESULT InitPlayer(void)
 		{//右足
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(-3.064f, -4.873f, -0.409f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(-2.2f, -7.23f, 0.0f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -363,7 +366,7 @@ HRESULT InitPlayer(void)
 	g_player.state = NORMAL;
 	g_player.stateTime = 0;
 
-#if 0
+#if 1
 	// テクスチャの読み込み
 	D3DXCreateTextureFromFile(pDevice,					// デバイスへのポインタ
 								TEXTURE_PLAYER,		// ファイルの名前

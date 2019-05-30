@@ -281,10 +281,10 @@ void DrawGame(void)
 	DrawBullet();
 
 	// エフェクト処理の描画
-	DrawEffect();
+	//DrawEffect();
 
 	// 壁処理の描画
-	DrawMeshWall();
+	//DrawMeshWall();
 
 	// 爆発処理の描画
 	DrawExplosion();

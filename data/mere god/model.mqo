@@ -2,17 +2,23 @@ Metasequoia Document
 Format Text Ver 1.0
 
 Scene {
-	pos -6.8511 4.8054 341.6870
+	pos -6.8511 4.8054 213.5544
 	lookat 0.0000 0.0000 0.0000
-	head 31.6364
-	pich -0.0192
+	head 31.5364
+	pich 0.6708
+	bank 0.0000
 	ortho 0
-	zoom2 21.9499
+	zoom2 35.1198
 	amb 0.250 0.250 0.250
+	dirlights 1 {
+		light {
+			dir 0.408 0.408 0.816
+			color 1.000 1.000 1.000
+		}
+	}
 }
-Material 2 {
-	"palette" col(1.000 1.000 1.000 1.000) dif(0.800) amb(0.600) emi(0.000) spc(0.000) power(5.00) tex("D:\MagicaVoxel-0.99.3-alpha-win64\export\knight-1-knight_hand_L.png")
-	"mat1" col(1.000 1.000 1.000 1.000) dif(0.800) amb(0.600) emi(0.000) spc(0.000) power(5.00) tex("D:\MagicaVoxel-0.99.3-alpha-win64\export\kenn.png")
+Material 1 {
+	"palette" col(1.000 1.000 1.000 1.000) dif(0.800) amb(0.600) emi(0.000) spc(0.000) power(5.00) tex("knight.png")
 }
 Object "hand" {
 	visible 15
@@ -2990,6 +2996,8 @@ Object "leg" {
 	facet 59.5
 	color 0.898 0.498 0.698
 	color_type 0
+	mirror 1
+	mirror_axis 1
 	vertex 32 {
 		4.2777 -13.5106 0.8513
 		4.2777 -13.5106 -1.1487
@@ -3089,11 +3097,13 @@ Object "leg" {
 }
 Object "sword" {
 	visible 15
-	locking 0
+	locking 1
 	shading 1
 	facet 59.5
 	color 0.898 0.498 0.698
 	color_type 0
+	mirror 1
+	mirror_axis 1
 	vertex 522 {
 		-7.3295 -3.8464 14.6889
 		-7.2491 -2.0419 16.4173
