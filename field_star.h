@@ -17,12 +17,16 @@
 
 namespace warpzoneNS
 {
-	const D3DXVECTOR3 warp0 = D3DXVECTOR3(0, 0, 0);
+	// warpzone の中心座標
+	// 2次元ベクトルで距離を抽出、一定以下の距離でフラグオン
+	const D3DXVECTOR3 warp0 = D3DXVECTOR3(0, 0, 0); // 地面の星
 	const D3DXVECTOR3 warp1 = D3DXVECTOR3(333, 0, 476);
 	const D3DXVECTOR3 warp2 = D3DXVECTOR3(-330, 0, 476);
-	const D3DXVECTOR3 warp3 = D3DXVECTOR3(-558, 0, -176);//-558 -176
-	const D3DXVECTOR3 warp4 = D3DXVECTOR3(-14, 0, -572);//-14 -572
-	const D3DXVECTOR3 warp5 = D3DXVECTOR3(539, 0, -191);// 539 -191
+	const D3DXVECTOR3 warp3 = D3DXVECTOR3(-558, 0, -176);
+	const D3DXVECTOR3 warp4 = D3DXVECTOR3(-14, 0, -572);
+	const D3DXVECTOR3 warp5 = D3DXVECTOR3(539, 0, -191);
+
+	// warpzoneからwarpする距離（キャラの中心-warpzoneの中心） 2次元ベクトルの距離
 	const float into_warpzone = 30;
 }
 
@@ -59,6 +63,6 @@ void UpdateFieldStar(void);
 void DrawFieldStarModel(void);
 
 void playerWarp(int i);
-float distanceVec(D3DXVECTOR2 A, D3DXVECTOR2 B);
+float distanceVec2(D3DXVECTOR2 A, D3DXVECTOR2 B);
 
 #endif

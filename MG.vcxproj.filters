@@ -22,6 +22,9 @@
     <Filter Include="ソース ファイル\当たり判定">
       <UniqueIdentifier>{ad25e0a2-fe99-4995-8fd7-e687883ea47b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\Stage">
+      <UniqueIdentifier>{187d998c-549b-4850-93be-cb1cd18f6f1a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bullet.h">

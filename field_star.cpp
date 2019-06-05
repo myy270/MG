@@ -10,6 +10,8 @@
 #include "bullet.h"
 #include "Hitjudge.h"
 #include "field_star.h"
+#include "fade.h"
+#include "main.h"
 
 
 //*************キャラクターデータ変数の用意*****************************
@@ -18,6 +20,7 @@ MODEL	FieldStar[NUM_FIELD];			//プレイヤーキャラクタ構造体
 using namespace warpzoneNS;
 extern PLAYER g_player;
 extern ENEMY g_enemy;
+extern int g_next_stage;
 
 
 //*********************モデルデータファイル名配列********************
@@ -197,24 +200,23 @@ void DrawFieldStarModel(void)
 
 void playerWarp( int i)
 {
+	// 
 	D3DXVECTOR2 A = D3DXVECTOR2(g_enemy.part[0].srt.pos.x, g_enemy.part[0].srt.pos.z);
 	D3DXVECTOR2 B = D3DXVECTOR2(FieldStar[i].pos.x, FieldStar[i].pos.z);
-	if (distanceVec(A, B) <= into_warpzone)
+	if (distanceVec2(A, B) <= into_warpzone)
 	{
 		// ワープの具体的な処理
-		int a = 0;
-		a++;
+		g_next_stage = i;
+		SetFade(FADE_OUT);
 	}
 }
 
-float distanceVec(D3DXVECTOR2 A, D3DXVECTOR2 B)
+float distanceVec2(D3DXVECTOR2 A, D3DXVECTOR2 B)
 {
 	D3DXVECTOR2 dis;
 	dis = B - A;
 	return D3DXVec2Length(&dis);
 }
-
-
 
  void initModelPos(D3DXVECTOR3* pos, int i)
 {

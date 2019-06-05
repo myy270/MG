@@ -42,6 +42,7 @@ LPDIRECT3DDEVICE9	g_pD3DDevice = NULL;	// Deviceオブジェクト(描画に必要)
 int					g_nCountFPS;			// FPSカウンタ
 #endif
 MODE				g_mode = MODE_GAME;	// モード
+int					g_next_stage;
 
 int rest;
 
@@ -384,6 +385,7 @@ void Update(void)
 
 	case MODE_GAME:			// ゲーム画面の更新
 		UpdateGame();
+
 		break;
 
 	case MODE_RESULT:		// リザルト画面の更新

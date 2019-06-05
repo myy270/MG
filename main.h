@@ -71,6 +71,8 @@ typedef struct
 	D3DXVECTOR2 tex;		// テクスチャ座標
 } VERTEX_3D;
 
+
+
 //*************************************
 // モードの種類
 //*************************************
@@ -78,19 +80,15 @@ typedef enum				//!!!
 {
 	MODE_TITLE = 0,			// タイトル画面
 	MODE_GAME,				// ゲーム画面
-	MODE_RESULT,			// リザルト画面
-	MODE_MAX
-} MODE;
-
-enum STAGE
-{
-	STAGE01 = 0,
+	STAGE01,
 	STAGE02,
 	STAGE03,
 	STAGE04,
 	STAGE05,
-	STAGE_MAX
-};
+	MODE_RESULT,			// リザルト画面
+	MODE_MAX
+} MODE;
+
 
 enum OBJECT
 {

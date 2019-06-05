@@ -7,6 +7,7 @@
 #include "fade.h"
 #include "timer.h"
 #include "score.h"
+#include "main.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -19,6 +20,7 @@
 HRESULT MakeVertexFade(LPDIRECT3DDEVICE9 pDevice);
 void SetColor(D3DCOLOR col);
 
+
 //*****************************************************************************
 // グローバル変数
 //*****************************************************************************
@@ -26,6 +28,7 @@ LPDIRECT3DTEXTURE9		g_p3DTextureFade = NULL;	// テクスチャへのポインタ
 LPDIRECT3DVERTEXBUFFER9 g_pD3DVtxBuffFade = NULL;	// 頂点バッファインターフェースへのポインタ
 D3DXCOLOR				g_color;
 FADE					g_fade = FADE_IN;//開く時のフェードイン
+extern int g_next_stage;
 
 //=============================================================================
 // 初期化処理
@@ -77,7 +80,14 @@ void UpdateFade(void)
 				// 現在のモードを取得
 				mode = GetMode();
 
-				mode = (MODE)((mode + 1) % MODE_MAX);	// モードを１つ進める　//intからMODEにキャストする必要ある
+				if (mode == MODE_TITLE || mode == MODE_RESULT) 
+				{
+					mode = (MODE)((mode + 1) % MODE_MAX);	// モードを１つ進める　//intからMODEにキャストする必要ある
+				}
+				else
+				{
+					mode = (MODE)(g_next_stage + MODE_GAME);
+				}
 
 				// モードを設定
 				SetMode(mode);

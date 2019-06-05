@@ -115,7 +115,6 @@ HRESULT FindVerticesOnPoly(LPD3DXMESH pMesh, DWORD dwPolyIndex, D3DXVECTOR3* pvV
 
 D3DXVECTOR3 CollideGeo(D3DXVECTOR3* m_A, D3DXVECTOR3 move, LPD3DXMESH* pThingB3D)
 {
-	//MODEL *Player = GetPlayer(0);
 
 	//“–‚½‚è”»’è
 	FLOAT fDistance = 0.0f;
