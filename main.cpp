@@ -45,7 +45,7 @@ MODE				g_mode = MODE_GAME;	// モード
 
 int rest;			//ポーズのスイッチ
 
-
+HWND hWnd;
 //=============================================================================
 // メイン関数
 //=============================================================================
@@ -74,7 +74,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		CLASS_NAME,
 		NULL
 	};
-	HWND hWnd;
+	
 	MSG msg;
 	
 	// ウィンドウクラスの登録

@@ -10,7 +10,7 @@
 #include "main.h"
 #include "item.h"
 
-#define PART_MAX	(7)		// パーツの数
+#define PART_MAX	(7)		// パーツの数　体、頭、左手、右手、左足、右足、右手の剣
 
 //*****************************************************************************
 // 構造体定義
@@ -59,18 +59,21 @@ struct PLAYER
 	int nIdxShadow;			// 影ID
 	PART part[PART_MAX];
 
-	ITEMTYPE holdItem;
+	ITEMTYPE holdItem;	//今持っているアイテム
 
-	STATE state;
-	int stateTime;
+	STATE state;	//異常状態かどうか
+	int stateTime;	//異常状態の残り時間
 };
 
 enum PART_ID
-{	
+{
 	BODY,
 	HEAD,
-	HAND,
-	LEG,
+	HAND_L,
+	HAND_R,
+	LEG_L,
+	LEG_R,
+	SWORD_R,
 	PART_ID_MAX
 };
 

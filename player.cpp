@@ -7,31 +7,21 @@
 #include "player.h"
 #include "camera.h"
 #include "input.h"
-#include "shadow.h"
-#include "bullet.h"
-#include "effect.h"
-#include "item.h"
-#include "score.h"
-//#include "sound.h"
 #include "debugproc.h"
-#include "timer.h"
+
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-//#define	BODY_PLAYER		"data/MODEL/bearBody.x"	// 読み込むモデル名
-//#define	HEAD_PLAYER		"data/MODEL/bearHead.x"	// 読み込むモデル名
-//#define	HAND_PLAYER		"data/MODEL/bearHand.x"	// 読み込むモデル名
-//#define	LEG_PLAYER		"data/MODEL/bearLeg.x"	// 読み込むモデル名
-//#define	ICE_BLOCK		"data/MODEL/iceBlock.x"		// 読み込むモデル名
 
 #define	BODY_PLAYER		"data/mere god/body.x"	// 読み込むモデル名
 #define	HEAD_PLAYER		"data/mere god/head.x"	// 読み込むモデル名
-#define	HAND_PLAYER		"data/mere god/hand.x"	// 読み込むモデル名
+#define	HAND_L_PLAYER		"data/mere god/hand_L.x"	// 読み込むモデル名
+#define	HAND_R_PLAYER		"data/mere god/hand_R.x"	// 読み込むモデル名
 #define	LEG_PLAYER		"data/mere god/leg.x"	// 読み込むモデル名
-#define	ICE_BLOCK		"data/MODEL/iceBlock.x"		// 読み込むモデル名
+#define	SWORD_PLAYER	"data/mere god/sword.x"		// 読み込むモデル名
 
 #define	TEXTURE_PLAYER	"data/mere god/knight.png"		// 読み込むモデル名
-
+#define	TEXTURE_SWORD	"data/mere god/kenn.png"		// 読み込むモデル名
 
 #define	PLAYER_RADIUS		(15.0f)						// 半径
 
@@ -41,9 +31,8 @@
 #define	VALUE_ROTATE_PLAYER	(D3DX_PI * 0.025f)			// 回転速度 4.5度
 #define	RATE_ROTATE_PLAYER	(0.10f)						// 回転慣性係数
 
-#define	VALUE_MOVE_BULLET	(7.5f)						// 弾の移動速度
 
-
+extern HWND hWnd;
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
@@ -55,18 +44,19 @@ void AnimeWalk();
 // グローバル変数
 //*****************************************************************************
 LPDIRECT3DTEXTURE9	g_pD3DTexturePlayer;		// テクスチャ読み込み場所
+LPDIRECT3DTEXTURE9	g_pD3DTextureSword;		// テクスチャ読み込み場所
 PLAYER				g_player;					// プレイヤーワーク
 
 int g_mode = MODE_EDIT;//編輯モードかどうか
-int g_conId = 0;//コントロールID
+
+int g_conId = 0;	//デフォルトのコントロールID
 
 float g_motionTime = 0.0f;	// アニメーション全体時間
 int g_keyMax;				//キーフレームの数
-bool g_animeState = 0;		//動くかどうか
-
+bool g_animeState = 0;		//運動状態かどうか
 float g_cancelTime = 0.0f;// 最初状態に戻る時間
 
-
+//走るキー情報
 KEY g_anime[] =
 {
 	{
@@ -92,7 +82,7 @@ KEY g_anime[] =
 
 			{// part 3
 				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
-				D3DXVECTOR3(0.0000f,3.1416f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
 				D3DXVECTOR3(-5.0000f,5.0000f,0.0000f),//T
 			},
 
@@ -107,6 +97,13 @@ KEY g_anime[] =
 				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
 				D3DXVECTOR3(-3.0640f,-4.8730f,-0.4090f),//T
 			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0f, -7.18f, -0.79f),//T
+			},
+
 
 		}
 	},///////////////////////////////////////////////////////////////////////////////////
@@ -134,7 +131,7 @@ KEY g_anime[] =
 
 			{// part 3
 				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
-				D3DXVECTOR3(0.7069f,3.1416f,0.0000f),//R
+				D3DXVECTOR3(-0.7069f,0.0000f,0.0000f),//R
 				D3DXVECTOR3(-5.0000f,5.0000f,0.0000f),//T
 			},
 
@@ -149,6 +146,13 @@ KEY g_anime[] =
 				D3DXVECTOR3(0.9425f,0.0000f,0.0000f),//R
 				D3DXVECTOR3(-3.0640f,-4.8730f,-0.4090f),//T
 			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0f, -7.18f, -0.79f),//T
+			},
+
 
 		}
 	},///////////////////////////////////////////////////////////////////////////////////
@@ -176,7 +180,7 @@ KEY g_anime[] =
 
 			{// part 3
 				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
-				D3DXVECTOR3(-1.0996f,3.1416f,0.0000f),//R
+				D3DXVECTOR3(1.0996f,0.0000f,0.0000f),//R
 				D3DXVECTOR3(-5.0000f,5.0000f,0.0000f),//T
 			},
 
@@ -190,6 +194,12 @@ KEY g_anime[] =
 				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
 				D3DXVECTOR3(-1.0854f,0.0000f,0.0000f),//R
 				D3DXVECTOR3(-3.0640f,-4.8730f,-0.4090f),//T
+			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0f, -7.18f, -0.79f),//T
 			},
 
 		}
@@ -218,7 +228,7 @@ KEY g_anime[] =
 
 			{// part 3
 				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
-				D3DXVECTOR3(0.7069f,3.1416f,0.0000f),//R
+				D3DXVECTOR3(-0.7069f,0.0000f,0.0000f),//R
 				D3DXVECTOR3(-5.0000f,5.0000f,0.0000f),//T
 			},
 
@@ -234,6 +244,12 @@ KEY g_anime[] =
 				D3DXVECTOR3(-3.0640f,-4.8730f,-0.4090f),//T
 			},
 
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0f, -7.18f, -0.79f),//T
+			},
+
 		}
 	},///////////////////////////////////////////////////////////////////////////////////
 
@@ -247,19 +263,18 @@ KEY g_anime[] =
 HRESULT InitPlayer(void)
 {
 	
-
 	g_keyMax = sizeof(g_anime) / sizeof(KEY);
 
 	LPDIRECT3DDEVICE9 pDevice = GetDevice();
 
 	g_player.part[0].partFile = (char *)BODY_PLAYER;//親は一番先にしなければならない
 	g_player.part[1].partFile = (char *)HEAD_PLAYER;//(const char *)から(char *)に変換
-	g_player.part[2].partFile = (char *)HAND_PLAYER;//左手
-	g_player.part[3].partFile = (char *)HAND_PLAYER;//右手
+	g_player.part[2].partFile = (char *)HAND_L_PLAYER;//左手
+	g_player.part[3].partFile = (char *)HAND_R_PLAYER;//右手
 	g_player.part[4].partFile = (char *)LEG_PLAYER;//左足
 	g_player.part[5].partFile = (char *)LEG_PLAYER;//右足
 
-	g_player.part[6].partFile = (char *)ICE_BLOCK;//氷
+	g_player.part[6].partFile = (char *)SWORD_PLAYER;//右手の剣
 
 	for (int i = 0; i < PART_MAX; i++)//パーツ番号
 	{
@@ -273,16 +288,17 @@ HRESULT InitPlayer(void)
 									&g_player.part[i].nNumMat,
 									&g_player.part[i].pMesh)))
 		{
+			MessageBox(hWnd, _T("Xファイルの読み込みに失敗しました"), _T("error"), MB_OK | MB_ICONERROR);
 			return E_FAIL;
 		}
 
 		switch (i)
-		{//初期値 pos.yは足が地面に触れるような数値
+		{//初期値
 		case 0:
 		{//体
 			g_player.part[i].srt.scl = D3DXVECTOR3(2.0f, 2.0f, 2.0f);//xyz必ず同じように
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 27.0f, 0.0f);//足が地面に触れるよう
+			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 27.0f, 0.0f);// pos.yは足が地面に触れるような数値
 
 			g_player.part[i].parent = NULL;//体の親はNULLにする
 			break;
@@ -291,7 +307,7 @@ HRESULT InitPlayer(void)
 		{//頭
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 7.06f,  -0.09f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 7.06f,  0.09f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -300,7 +316,7 @@ HRESULT InitPlayer(void)
 		{//左手
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(7.93f, 4.8f, 0.49f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(7.93f, 4.8f, -0.49f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -308,8 +324,8 @@ HRESULT InitPlayer(void)
 		case 3:
 		{//右手
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
-			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, D3DX_PI, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(-7.93f, 4.8f, 0.49f);
+			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(-7.93f, 4.8f, -0.49f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -332,45 +348,41 @@ HRESULT InitPlayer(void)
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
 		}
-
-		default:
-		{
+		case 6:
+		{//右手の剣
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
-			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);	
+			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, -7.18f, -0.79f);	//ここの数値要注意、特にｚの符号
 
-			g_player.part[i].parent = &g_player.part[0];//体を親にする
+			g_player.part[i].parent = &g_player.part[3];//右手を親にする！！
 			break;
 		}
 
 		}
 
-		if (i != 6)
-		{
-			g_player.part[i].use = true;
-		}
-		else
-		{
-			g_player.part[i].use = false;
-		}
+		g_player.part[i].use = true;
+
 	}
 
 	g_player.move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	g_player.rotDest = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-	g_player.fRadius = PLAYER_RADIUS;
-	// 影を設定 //体を基準に
-	g_player.nIdxShadow = SetShadow(g_player.part[0].srt.pos, g_player.fRadius * 2.0f, g_player.fRadius * 2.0f);
+	g_player.fRadius = PLAYER_RADIUS;	//影のサイズ用、当たり判定用　
 
-
-	g_player.holdItem = ITEMTYPE_COIN;
 	g_player.state = NORMAL;
-	g_player.stateTime = 0;
+	
 
 #if 1
 	// テクスチャの読み込み
 	D3DXCreateTextureFromFile(pDevice,					// デバイスへのポインタ
-								TEXTURE_PLAYER,		// ファイルの名前
+								TEXTURE_PLAYER,			// ファイルの名前
 								&g_pD3DTexturePlayer);	// 読み込むメモリー
+
+		// テクスチャの読み込み
+	D3DXCreateTextureFromFile(pDevice,						// デバイスへのポインタ
+								TEXTURE_SWORD,				// ファイルの名前
+								&g_pD3DTextureSword);	// 読み込むメモリー
+
+
 #endif
 
 	return S_OK;
@@ -401,6 +413,8 @@ void UninitPlayer(void)
 		g_pD3DTexturePlayer->Release();
 		g_pD3DTexturePlayer = NULL;
 	}
+
+	SAFE_RELEASE(g_pD3DTextureSword);
 }
 
 //=============================================================================
@@ -444,6 +458,12 @@ void UpdatePlayer(void)
 	{
 		g_conId = 5;
 	}
+	else if (GetKeyboardPress(DIK_NUMPAD6))
+	{
+		g_conId = 6;
+	}
+
+
 #endif
 
 
@@ -495,17 +515,17 @@ void UpdatePlayer(void)
 			for (int j = 0; j < PART_MAX; j++)//パーツ番号
 			{
 				// Scale
-				g_player.part[j].srt.scl.x = g_anime[i].key[j].scl.x +				// 前のキーフレーム位置
-					(g_anime[i + 1].key[j].scl.x - g_anime[i].key[j].scl.x)			// 前のキーフレームと次のキーフレームの差分
-					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+				//g_player.part[j].srt.scl.x = g_anime[i].key[j].scl.x +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].scl.x - g_anime[i].key[j].scl.x)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
 
-				g_player.part[j].srt.scl.y = g_anime[i].key[j].scl.y +				// 前のキーフレーム位置
-					(g_anime[i + 1].key[j].scl.y - g_anime[i].key[j].scl.y)			// 前のキーフレームと次のキーフレームの差分
-					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+				//g_player.part[j].srt.scl.y = g_anime[i].key[j].scl.y +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].scl.y - g_anime[i].key[j].scl.y)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
 
-				g_player.part[j].srt.scl.z = g_anime[i].key[j].scl.z +				// 前のキーフレーム位置
-					(g_anime[i + 1].key[j].scl.z - g_anime[i].key[j].scl.z)			// 前のキーフレームと次のキーフレームの差分
-					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+				//g_player.part[j].srt.scl.z = g_anime[i].key[j].scl.z +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].scl.z - g_anime[i].key[j].scl.z)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
 
 				// Rotation
 				g_player.part[j].srt.rot.x = g_anime[i].key[j].rot.x +				// 前のキーフレーム位置
@@ -521,17 +541,17 @@ void UpdatePlayer(void)
 					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
 
 				// Position
-				g_player.part[j].srt.pos.x = g_anime[i].key[j].pos.x +				// 前のキーフレーム位置
-					(g_anime[i + 1].key[j].pos.x - g_anime[i].key[j].pos.x)			// 前のキーフレームと次のキーフレームの差分
-					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+				//g_player.part[j].srt.pos.x = g_anime[i].key[j].pos.x +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].pos.x - g_anime[i].key[j].pos.x)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
 
-				g_player.part[j].srt.pos.y = g_anime[i].key[j].pos.y +				// 前のキーフレーム位置
-					(g_anime[i + 1].key[j].pos.y - g_anime[i].key[j].pos.y)			// 前のキーフレームと次のキーフレームの差分
-					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+				//g_player.part[j].srt.pos.y = g_anime[i].key[j].pos.y +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].pos.y - g_anime[i].key[j].pos.y)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
 
-				g_player.part[j].srt.pos.z = g_anime[i].key[j].pos.z +				// 前のキーフレーム位置
-					(g_anime[i + 1].key[j].pos.z - g_anime[i].key[j].pos.z)			// 前のキーフレームと次のキーフレームの差分
-					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+				//g_player.part[j].srt.pos.z = g_anime[i].key[j].pos.z +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].pos.z - g_anime[i].key[j].pos.z)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
 			}
 		}
 
@@ -548,8 +568,7 @@ void UpdatePlayer(void)
 
 		g_animeState = 0;//運動状態をリセット
 
-		if((GetTimeOut() == 0) && (g_player.state != FROZEN))
-		{//移動
+			//移動
 			if (GetKeyboardPress(DIK_A) || IsButtonPress(0, BUTTON_LEFT) || IsButtonPress(0, BUTTON_LSTICK_LEFT))
 			{
 				g_animeState = 1;//動く状態にする
@@ -650,7 +669,7 @@ void UpdatePlayer(void)
 				}
 			}
 #endif
-		}
+		
 
 #ifdef _DEBUG
 		//パーツの変形
@@ -712,7 +731,7 @@ void UpdatePlayer(void)
 			}
 #endif
 
-		AnimeWalk();
+		//AnimeWalk();
 
 
 		// 目的の角度までの差分
@@ -781,153 +800,7 @@ void UpdatePlayer(void)
 
 	}//switch end
 
-// 弾発射
-#ifdef _DEBUG
-	if (0)
-	{
-		if ((GetTimeOut() == 0) && (g_player.state != FROZEN))
-		{
-			if (GetKeyboardTrigger(DIK_SPACE))
-			{
-				D3DXVECTOR3 pos;
-				D3DXVECTOR3 move;
 
-				//体を基準に
-				pos.x = g_player.part[0].srt.pos.x - sinf(g_player.part[0].srt.rot.y) * g_player.fRadius;//飛行機頭部の辺りに設定
-				pos.y = g_player.part[0].srt.pos.y;
-				pos.z = g_player.part[0].srt.pos.z - cosf(g_player.part[0].srt.rot.y) * g_player.fRadius;
-
-				//回転角度がプラスの時、時計回り
-				//sinf、cosfの符号がちょうど移動量の符号と相反する、だから-sinf、-cosf
-				move.x = -sinf(g_player.part[0].srt.rot.y) * VALUE_MOVE_BULLET;//体を基準に
-				move.y = 0.0f;
-				move.z = -cosf(g_player.part[0].srt.rot.y) * VALUE_MOVE_BULLET;
-
-				SetBullet(pos, move, 4.0f, 4.0f, 60 * 4);
-
-				// SE再生
-				//PlaySound(SOUND_LABEL_SE_SHOT);
-			}
-		}
-	}
-#endif
-
-	// 影の位置設定
-	{//体を基準に
-		SetPositionShadow(g_player.nIdxShadow, D3DXVECTOR3(g_player.part[0].srt.pos.x, 0.1f, g_player.part[0].srt.pos.z));
-		//高さにより、影のサイズが変化する
-		float fSizeX = 20.0f + (g_player.part[0].srt.pos.y - 10.0f) * 0.05f;
-		if(fSizeX < 20.0f)
-		{
-			fSizeX = 20.0f;
-		}
-		float fSizeY = 20.0f + (g_player.part[0].srt.pos.y - 10.0f) * 0.05f;
-		if(fSizeY < 20.0f)
-		{
-			fSizeY = 20.0f;
-		}
-
-		SetVertexShadow(g_player.nIdxShadow, fSizeX, fSizeY);
-		//高さにより、影の透明度が変化する
-		float colA = (200.0f - (g_player.part[0].srt.pos.y - 10.0f)) / 400.0f;
-		if(colA < 0.0f)
-		{
-			colA = 0.0f;
-		}
-		SetColorShadow(g_player.nIdxShadow, D3DXCOLOR(1.0f, 1.0f, 1.0f, colA));
-	}
-
-	//移動距離が1より大きい場合、ジェットの煙ある
-	if((g_player.move.x * g_player.move.x
-	+ g_player.move.y * g_player.move.y
-	+ g_player.move.z * g_player.move.z) > 1.0f)
-	{
-		D3DXVECTOR3 pos;
-		//体を基準に
-		pos.x = g_player.part[0].srt.pos.x + sinf(g_player.part[0].srt.rot.y) * g_player.fRadius;//飛行機尾部の辺りに設定
-		pos.y = g_player.part[0].srt.pos.y + 2.0f;
-		pos.z = g_player.part[0].srt.pos.z + cosf(g_player.part[0].srt.rot.y) * g_player.fRadius;
-
-		// エフェクトの設定
-		SetEffect(pos, D3DXVECTOR3(0.0f, 0.0f, 0.0f),
-							D3DXCOLOR(0.85f, 0.15f, 0.0f, 0.50f), 14.0f, 14.0f, 20);//オレンジ
-		SetEffect(pos, D3DXVECTOR3(0.0f, 0.0f, 0.0f),
-							D3DXCOLOR(0.15f, 0.75f, 0.0f, 0.30f), 10.0f, 10.0f, 20);//緑
-		SetEffect(pos, D3DXVECTOR3(0.0f, 0.0f, 0.0f),
-							D3DXCOLOR(0.0f, 0.10f, 0.0f, 0.15f), 5.0f, 5.0f, 20);//緑
-	}
-
-	// アイテムとの当たり判定
-	{
-		ITEM *pItem;
-
-		// アイテムを取得
-		pItem = GetItem();
-
-		for(int nCntItem = 0; nCntItem < MAX_ITEM; nCntItem++, pItem++)
-		{
-			if(pItem->bUse == true)
-			{
-				float fLength;
-
-				//バウンディングサークル BC //体を基準に
-				fLength = (g_player.part[0].srt.pos.x - pItem->pos.x) * (g_player.part[0].srt.pos.x - pItem->pos.x)
-							+ (g_player.part[0].srt.pos.y - pItem->pos.y) * (g_player.part[0].srt.pos.y - pItem->pos.y)
-							+ (g_player.part[0].srt.pos.z - pItem->pos.z) * (g_player.part[0].srt.pos.z - pItem->pos.z);
-				if(fLength < (g_player.fRadius + pItem->fRadius) * (g_player.fRadius + pItem->fRadius))
-				{
-					if (g_player.holdItem && (pItem->nType != ITEMTYPE_COIN))
-					{//アイテム持っている場合、ほかのアイテムを拾えない
-
-					}
-					else
-					{
-						if (pItem->nType == ITEMTYPE_ICEBLOCK)
-						{
-							g_player.holdItem = ITEMTYPE_ICEBLOCK;
-						}
-						else if(pItem->nType == ITEMTYPE_COIN)
-						{
-							// スコア加算
-							ChangeScore2(100);
-
-							// SE再生
-							//PlaySound(SOUND_LABEL_SE_COIN);
-						}
-
-						// アイテム消去
-						DeleteItem(nCntItem);
-				
-					}
-				}
-			}
-		}
-	}
-
-
-	if ((GetTimeOut() == 0) && (g_player.state != FROZEN))
-	{
-		if (GetKeyboardTrigger(DIK_SPACE) || IsButtonTrigger(0, BUTTON_CIRCLE))
-		{//凍結アイテムを使う
-			Freeze(OBJECT_ENEMY);
-		}
-	}
-
-	//凍結状態
-	if (g_player.state == FROZEN)
-	{
-		if (g_player.stateTime == 0)
-		{
-			g_player.state = NORMAL;
-			g_player.part[6].use = false;
-		}
-		else
-		{
-			g_player.stateTime--;
-			g_player.part[6].use = true;
-
-		}
-	}
 
 //運動情報を書き出す
 #ifdef _DEBUG
@@ -1004,13 +877,18 @@ void DrawPlayer(void)
 			// マテリアル情報に対するポインタを取得
 			pD3DXMat = (D3DXMATERIAL*)g_player.part[i].pMatBuff->GetBufferPointer();
 
+			// テクスチャの設定
+			pDevice->SetTexture(0, g_pD3DTexturePlayer);
+
+			if (i == SWORD_R)
+			{
+				pDevice->SetTexture(0, g_pD3DTextureSword);
+			}
+
 			for (int nCntMat = 0; nCntMat < (int)g_player.part[i].nNumMat; nCntMat++)
 			{
 				// マテリアルの設定
 				pDevice->SetMaterial(&pD3DXMat[nCntMat].MatD3D);
-
-				// テクスチャの設定
-				pDevice->SetTexture(0, g_pD3DTexturePlayer);
 
 				// 描画
 				g_player.part[i].pMesh->DrawSubset(nCntMat);
@@ -1145,20 +1023,20 @@ void AnimeWalk()
 		}
 
 		//接続の補間は　[i] * 1.0です、[i + 1] * 0.0ではない
-		for (int j = 0; j < 6; j++)//パーツ番号
+		for (int j = 0; j < PART_MAX; j++)//パーツ番号
 		{//最初のキーの状態に戻る
 			// Scale
-			g_player.part[j].srt.scl.x = g_player.part[j].srt.scl.x +	
-				(g_anime[0].key[j].scl.x - g_player.part[j].srt.scl.x)	
-				* g_cancelTime;											
+			//g_player.part[j].srt.scl.x = g_player.part[j].srt.scl.x +	
+			//	(g_anime[0].key[j].scl.x - g_player.part[j].srt.scl.x)	
+			//	* g_cancelTime;											
 
-			g_player.part[j].srt.scl.y = g_player.part[j].srt.scl.y +	
-				(g_anime[0].key[j].scl.y - g_player.part[j].srt.scl.y)	
-				* g_cancelTime;											
+			//g_player.part[j].srt.scl.y = g_player.part[j].srt.scl.y +	
+			//	(g_anime[0].key[j].scl.y - g_player.part[j].srt.scl.y)	
+			//	* g_cancelTime;											
 
-			g_player.part[j].srt.scl.z = g_player.part[j].srt.scl.z +	
-				(g_anime[0].key[j].scl.z - g_player.part[j].srt.scl.z)	
-				* g_cancelTime;											
+			//g_player.part[j].srt.scl.z = g_player.part[j].srt.scl.z +	
+			//	(g_anime[0].key[j].scl.z - g_player.part[j].srt.scl.z)	
+			//	* g_cancelTime;											
 
 			// Rotation
 			g_player.part[j].srt.rot.x = g_player.part[j].srt.rot.x +	
@@ -1193,20 +1071,20 @@ void AnimeWalk()
 		g_cancelTime = 0.0f;	//リセット
 
 		//接続の補間は　[i] * 1.0です、[i + 1] * 0.0ではない
-		for (int j = 0; j < 6; j++)//パーツ番号
+		for (int j = 0; j < PART_MAX; j++)//パーツ番号
 		{
 			// Scale
-			g_player.part[j].srt.scl.x = g_anime[i].key[j].scl.x +				// 前のキーフレーム位置
-				(g_anime[i + 1].key[j].scl.x - g_anime[i].key[j].scl.x)			// 前のキーフレームと次のキーフレームの差分
-				* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+			//g_player.part[j].srt.scl.x = g_anime[i].key[j].scl.x +				// 前のキーフレーム位置
+			//	(g_anime[i + 1].key[j].scl.x - g_anime[i].key[j].scl.x)			// 前のキーフレームと次のキーフレームの差分
+			//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
 
-			g_player.part[j].srt.scl.y = g_anime[i].key[j].scl.y +				// 前のキーフレーム位置
-				(g_anime[i + 1].key[j].scl.y - g_anime[i].key[j].scl.y)			// 前のキーフレームと次のキーフレームの差分
-				* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+			//g_player.part[j].srt.scl.y = g_anime[i].key[j].scl.y +				// 前のキーフレーム位置
+			//	(g_anime[i + 1].key[j].scl.y - g_anime[i].key[j].scl.y)			// 前のキーフレームと次のキーフレームの差分
+			//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
 
-			g_player.part[j].srt.scl.z = g_anime[i].key[j].scl.z +				// 前のキーフレーム位置
-				(g_anime[i + 1].key[j].scl.z - g_anime[i].key[j].scl.z)			// 前のキーフレームと次のキーフレームの差分
-				* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+			//g_player.part[j].srt.scl.z = g_anime[i].key[j].scl.z +				// 前のキーフレーム位置
+			//	(g_anime[i + 1].key[j].scl.z - g_anime[i].key[j].scl.z)			// 前のキーフレームと次のキーフレームの差分
+			//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
 
 			// Rotation
 			g_player.part[j].srt.rot.x = g_anime[i].key[j].rot.x +				// 前のキーフレーム位置
