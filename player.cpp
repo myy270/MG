@@ -432,6 +432,11 @@ void UpdatePlayer(void)
 	{
 		g_mode = MODE_EDIT;
 	}
+	if (GetKeyboardPress(DIK_3))
+	{
+		g_mode = MODE_INGAME;
+	}
+
 
 	//コントロールIDの入力
 	if (GetKeyboardPress(DIK_NUMPAD0))
@@ -560,6 +565,125 @@ void UpdatePlayer(void)
 
 	case MODE_EDIT:
 	{
+
+#ifdef _DEBUG
+
+		//モデルパーツのコントローラー（モーション作成ツール）
+		//回転
+		{
+			//x軸回転
+			if (GetKeyboardPress(DIK_Z))
+			{
+				g_player.part[g_conId].srt.rot.x += VALUE_ROTATE_PLAYER;
+				if (g_player.part[g_conId].srt.rot.x > D3DX_PI)
+				{
+					g_player.part[g_conId].srt.rot.x -= D3DX_PI * 2.0f;
+				}
+			}
+			else if (GetKeyboardPress(DIK_X))
+			{
+				g_player.part[g_conId].srt.rot.x -= VALUE_ROTATE_PLAYER;
+				if (g_player.part[g_conId].srt.rot.x < -D3DX_PI)
+				{
+					g_player.part[g_conId].srt.rot.x += D3DX_PI * 2.0f;
+				}
+			}
+
+			//y軸回転
+			if (GetKeyboardPress(DIK_C))
+			{
+				g_player.part[g_conId].srt.rot.y += VALUE_ROTATE_PLAYER;
+				if (g_player.part[g_conId].srt.rot.y > D3DX_PI)
+				{
+					g_player.part[g_conId].srt.rot.y -= D3DX_PI * 2.0f;
+				}
+			}
+			else if (GetKeyboardPress(DIK_V))
+			{
+				g_player.part[g_conId].srt.rot.y -= VALUE_ROTATE_PLAYER;
+				if (g_player.part[g_conId].srt.rot.y < -D3DX_PI)
+				{
+					g_player.part[g_conId].srt.rot.y += D3DX_PI * 2.0f;
+				}
+			}
+
+			//z軸回転
+			if (GetKeyboardPress(DIK_B))
+			{
+				g_player.part[g_conId].srt.rot.z += VALUE_ROTATE_PLAYER;
+				if (g_player.part[g_conId].srt.rot.z > D3DX_PI)
+				{
+					g_player.part[g_conId].srt.rot.z -= D3DX_PI * 2.0f;
+				}
+			}
+			else if (GetKeyboardPress(DIK_N))
+			{
+				g_player.part[g_conId].srt.rot.z -= VALUE_ROTATE_PLAYER;
+				if (g_player.part[g_conId].srt.rot.z < -D3DX_PI)
+				{
+					g_player.part[g_conId].srt.rot.z += D3DX_PI * 2.0f;
+				}
+			}
+
+		}
+
+		//移動
+		{
+			//x軸移動
+			if (GetKeyboardPress(DIK_A))
+			{
+				g_player.part[g_conId].srt.pos.x -= VALUE_MOVE_PLAYER;
+			}
+			else if (GetKeyboardPress(DIK_D))
+			{
+				g_player.part[g_conId].srt.pos.x += VALUE_MOVE_PLAYER;
+			}
+
+			//y軸移動
+			if (GetKeyboardPress(DIK_F))
+			{
+				g_player.part[g_conId].srt.pos.y -= VALUE_MOVE_PLAYER;
+			}
+			else if (GetKeyboardPress(DIK_G))
+			{
+				g_player.part[g_conId].srt.pos.y += VALUE_MOVE_PLAYER;
+			}
+
+			//z軸移動
+			if (GetKeyboardPress(DIK_S))
+			{
+				g_player.part[g_conId].srt.pos.z -= VALUE_MOVE_PLAYER;
+			}
+			else if (GetKeyboardPress(DIK_W))
+			{
+				g_player.part[g_conId].srt.pos.z += VALUE_MOVE_PLAYER;
+			}
+		}
+
+		//縮小拡大
+		{
+			if (GetKeyboardPress(DIK_H))
+			{
+				g_player.part[g_conId].srt.scl.x -= 0.1f;
+				g_player.part[g_conId].srt.scl.y -= 0.1f;
+				g_player.part[g_conId].srt.scl.z -= 0.1f;
+			}
+			else if (GetKeyboardPress(DIK_J))
+			{
+				g_player.part[g_conId].srt.scl.x += 0.1f;
+				g_player.part[g_conId].srt.scl.y += 0.1f;
+				g_player.part[g_conId].srt.scl.z += 0.1f;
+			}
+		}
+
+
+#endif		
+
+		break;
+	}
+
+	case MODE_INGAME:
+	{
 		D3DXVECTOR3 rotCamera;
 		float fDiffRotY;
 
@@ -569,169 +693,81 @@ void UpdatePlayer(void)
 		g_animeState = 0;//運動状態をリセット
 
 			//移動
-			if (GetKeyboardPress(DIK_A) || IsButtonPress(0, BUTTON_LEFT) || IsButtonPress(0, BUTTON_LSTICK_LEFT))
-			{
-				g_animeState = 1;//動く状態にする
+		if (GetKeyboardPress(DIK_A) || IsButtonPress(0, BUTTON_LEFT) || IsButtonPress(0, BUTTON_LSTICK_LEFT))
+		{
+			g_animeState = 1;//動く状態にする
 
-				if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
-				{// 左前移動
-					g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
-					g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
+			if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
+			{// 左前移動
+				g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
+				g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
 
-					g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.75f;
-				}
-				else if (GetKeyboardPress(DIK_S) || IsButtonPress(0, BUTTON_DOWN) || IsButtonPress(0, BUTTON_LSTICK_DOWN))
-				{// 左後移動
-					g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
-					g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
-
-					g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.25f;
-				}
-				else
-				{// 左移動
-					g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
-					g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
-
-					g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.50f;
-				}
-			}
-			else if (GetKeyboardPress(DIK_D) || IsButtonPress(0, BUTTON_RIGHT) || IsButtonPress(0, BUTTON_LSTICK_RIGHT))
-			{
-				g_animeState = 1;//動く状態にする
-
-				if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
-				{// 右前移動
-					g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
-					g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
-
-					g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.75f;
-				}
-				else if (GetKeyboardPress(DIK_S) || IsButtonPress(0, BUTTON_DOWN) || IsButtonPress(0, BUTTON_LSTICK_DOWN))
-				{// 右後移動
-					g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
-					g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
-
-					g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.25f;
-				}
-				else
-				{// 右移動
-					g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
-					g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
-
-					g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.50f;
-				}
-			}
-			else if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
-			{
-				g_animeState = 1;//動く状態にする
-
-				// 前移動
-				g_player.move.x -= sinf(D3DX_PI + rotCamera.y) * VALUE_MOVE_PLAYER;
-				g_player.move.z -= cosf(D3DX_PI + rotCamera.y) * VALUE_MOVE_PLAYER;
-
-				g_player.rotDest.y = D3DX_PI + rotCamera.y;
+				g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.75f;
 			}
 			else if (GetKeyboardPress(DIK_S) || IsButtonPress(0, BUTTON_DOWN) || IsButtonPress(0, BUTTON_LSTICK_DOWN))
-			{
-				g_animeState = 1;//動く状態にする
+			{// 左後移動
+				g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
+				g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
 
-				// 後移動
-				g_player.move.x -= sinf(rotCamera.y) * VALUE_MOVE_PLAYER;
-				g_player.move.z -= cosf(rotCamera.y) * VALUE_MOVE_PLAYER;
+				g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.25f;
+			}
+			else
+			{// 左移動
+				g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
+				g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
 
-				g_player.rotDest.y = rotCamera.y;
+				g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.50f;
 			}
+		}
+		else if (GetKeyboardPress(DIK_D) || IsButtonPress(0, BUTTON_RIGHT) || IsButtonPress(0, BUTTON_LSTICK_RIGHT))
+		{
+			g_animeState = 1;//動く状態にする
 
-#ifdef _DEBUG
-			if (GetKeyboardPress(DIK_T))
-			{// 上昇
-				g_player.move.y += VALUE_MOVE_PLAYER;
-			}
-			if (GetKeyboardPress(DIK_Y))
-			{// 下降
-				g_player.move.y -= VALUE_MOVE_PLAYER;
-			}
+			if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
+			{// 右前移動
+				g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
+				g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
 
-			if (GetKeyboardPress(DIK_U))
-			{// 左回転
-				g_player.rotDest.y -= VALUE_ROTATE_PLAYER;
-				if (g_player.rotDest.y < -D3DX_PI)
-				{
-					g_player.rotDest.y += D3DX_PI * 2.0f;
-				}
+				g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.75f;
 			}
-			if (GetKeyboardPress(DIK_I))
-			{// 右回転
-				g_player.rotDest.y += VALUE_ROTATE_PLAYER;
-				if (g_player.rotDest.y > D3DX_PI)
-				{
-					g_player.rotDest.y -= D3DX_PI * 2.0f;
-				}
-			}
-#endif
-		
+			else if (GetKeyboardPress(DIK_S) || IsButtonPress(0, BUTTON_DOWN) || IsButtonPress(0, BUTTON_LSTICK_DOWN))
+			{// 右後移動
+				g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
+				g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
 
-#ifdef _DEBUG
-		//パーツの変形
-		//x軸回転
-		if (GetKeyboardPress(DIK_Z))
-			{
-				g_player.part[g_conId].srt.rot.x += VALUE_ROTATE_PLAYER;
-				if (g_player.part[g_conId].srt.rot.x > D3DX_PI)
-				{
-					g_player.part[g_conId].srt.rot.x -= D3DX_PI * 2.0f;
-				}
-
+				g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.25f;
 			}
-		else if (GetKeyboardPress(DIK_X))
-			{
-				g_player.part[g_conId].srt.rot.x -= VALUE_ROTATE_PLAYER;
-				if (g_player.part[g_conId].srt.rot.x < -D3DX_PI)
-				{
-					g_player.part[g_conId].srt.rot.x += D3DX_PI * 2.0f;
-				}
-			}
+			else
+			{// 右移動
+				g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
+				g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
 
-		//y軸回転
-		if (GetKeyboardPress(DIK_C))
-			{
-				g_player.part[g_conId].srt.rot.y += VALUE_ROTATE_PLAYER;
-				if (g_player.part[g_conId].srt.rot.y > D3DX_PI)
-				{
-					g_player.part[g_conId].srt.rot.y -= D3DX_PI * 2.0f;
-				}
-
+				g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.50f;
 			}
-		else if (GetKeyboardPress(DIK_V))
-			{
-				g_player.part[g_conId].srt.rot.y -= VALUE_ROTATE_PLAYER;
-				if (g_player.part[g_conId].srt.rot.y < -D3DX_PI)
-				{
-					g_player.part[g_conId].srt.rot.y += D3DX_PI * 2.0f;
-				}
-			}
+		}
+		else if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
+		{
+			g_animeState = 1;//動く状態にする
 
-		//z軸回転
-		if (GetKeyboardPress(DIK_B))
-			{
-				g_player.part[g_conId].srt.rot.z += VALUE_ROTATE_PLAYER;
-				if (g_player.part[g_conId].srt.rot.z > D3DX_PI)
-				{
-					g_player.part[g_conId].srt.rot.z -= D3DX_PI * 2.0f;
-				}
+			// 前移動
+			g_player.move.x -= sinf(D3DX_PI + rotCamera.y) * VALUE_MOVE_PLAYER;
+			g_player.move.z -= cosf(D3DX_PI + rotCamera.y) * VALUE_MOVE_PLAYER;
 
-			}
-		else if (GetKeyboardPress(DIK_N))
-			{
-				g_player.part[g_conId].srt.rot.z -= VALUE_ROTATE_PLAYER;
-				if (g_player.part[g_conId].srt.rot.z < -D3DX_PI)
-				{
-					g_player.part[g_conId].srt.rot.z += D3DX_PI * 2.0f;
-				}
-			}
-#endif
+			g_player.rotDest.y = D3DX_PI + rotCamera.y;
+		}
+		else if (GetKeyboardPress(DIK_S) || IsButtonPress(0, BUTTON_DOWN) || IsButtonPress(0, BUTTON_LSTICK_DOWN))
+		{
+			g_animeState = 1;//動く状態にする
 
-		//AnimeWalk();
+			// 後移動
+			g_player.move.x -= sinf(rotCamera.y) * VALUE_MOVE_PLAYER;
+			g_player.move.z -= cosf(rotCamera.y) * VALUE_MOVE_PLAYER;
+
+			g_player.rotDest.y = rotCamera.y;
+		}
+
+
+		AnimeWalk();
 
 
 		// 目的の角度までの差分
@@ -798,6 +834,8 @@ void UpdatePlayer(void)
 		break;
 	}
 
+
+
 	}//switch end
 
 
@@ -809,6 +847,8 @@ void UpdatePlayer(void)
 		WriteAnime();
 	}
 #endif
+
+	PrintDebugProc("編輯モード：%d \n\n", g_mode);
 
 	PrintDebugProc("コントロールのパーツ番号：%d \n\n", g_conId);
 

@@ -177,23 +177,23 @@ void UpdateCamera(void)
 		}
 	}
 
-	if (GetKeyboardPress(DIK_G))
+	if (GetKeyboardPress(DIK_R))
 	{//zoom
 		g_fLengthIntervalCamera -= VALUE_MOVE_CAMERA;
 	}
 
-	if (GetKeyboardPress(DIK_H))
+	if (GetKeyboardPress(DIK_T))
 	{//zoom
 		g_fLengthIntervalCamera += VALUE_MOVE_CAMERA;
 	}
 
 
-	if (GetKeyboardPress(DIK_J))
+	if (GetKeyboardPress(DIK_Y))
 	{// ’ÇÕ‚Ì‹“_‚Ì‚‚³
 		g_chaseHightP -= VALUE_MOVE_CAMERA;
 	}
 
-	if (GetKeyboardPress(DIK_K))
+	if (GetKeyboardPress(DIK_U))
 	{// ’ÇÕ‚Ì‹“_‚Ì‚‚³
 		g_chaseHightP += VALUE_MOVE_CAMERA;
 	}

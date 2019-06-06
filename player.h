@@ -79,8 +79,9 @@ enum PART_ID
 
 enum APPLIMODE
 {
-	MODE_PLAY,
-	MODE_EDIT,
+	MODE_PLAY,//作ったモーションを再生するモード
+	MODE_EDIT,//モーションを作るモード
+	MODE_INGAME,//実際プレイするときのモード
 	APPLIMODE_MAX
 };
 
