@@ -17,7 +17,8 @@
 #define	HEAD_PLAYER		"data/mere god/head.x"	// 読み込むモデル名
 #define	HAND_L_PLAYER		"data/mere god/hand_L.x"	// 読み込むモデル名
 #define	HAND_R_PLAYER		"data/mere god/hand_R.x"	// 読み込むモデル名
-#define	LEG_PLAYER		"data/mere god/leg.x"	// 読み込むモデル名
+#define	LEG_L_PLAYER		"data/mere god/leg_L.x"	// 読み込むモデル名
+#define	LEG_R_PLAYER		"data/mere god/leg_R.x"	// 読み込むモデル名
 #define	SWORD_PLAYER	"data/mere god/sword.x"		// 読み込むモデル名
 
 #define	TEXTURE_PLAYER	"data/mere god/knight.png"		// 読み込むモデル名
@@ -271,8 +272,8 @@ HRESULT InitPlayer(void)
 	g_player.part[1].partFile = (char *)HEAD_PLAYER;//(const char *)から(char *)に変換
 	g_player.part[2].partFile = (char *)HAND_L_PLAYER;//左手
 	g_player.part[3].partFile = (char *)HAND_R_PLAYER;//右手
-	g_player.part[4].partFile = (char *)LEG_PLAYER;//左足
-	g_player.part[5].partFile = (char *)LEG_PLAYER;//右足
+	g_player.part[4].partFile = (char *)LEG_L_PLAYER;//左足
+	g_player.part[5].partFile = (char *)LEG_R_PLAYER;//右足
 
 	g_player.part[6].partFile = (char *)SWORD_PLAYER;//右手の剣
 
@@ -298,7 +299,7 @@ HRESULT InitPlayer(void)
 		{//体
 			g_player.part[i].srt.scl = D3DXVECTOR3(2.0f, 2.0f, 2.0f);//xyz必ず同じように
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 27.0f, 0.0f);// pos.yは足が地面に触れるような数値
+			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 28.0f, 0.0f);// pos.yは足が地面に触れるような数値
 
 			g_player.part[i].parent = NULL;//体の親はNULLにする
 			break;
@@ -316,7 +317,7 @@ HRESULT InitPlayer(void)
 		{//左手
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(7.93f, 4.8f, -0.49f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(7.01f, 4.82f, -0.49f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -325,7 +326,7 @@ HRESULT InitPlayer(void)
 		{//右手
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(-7.93f, 4.8f, -0.49f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(-7.01f, 4.82f, -0.49f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -334,7 +335,7 @@ HRESULT InitPlayer(void)
 		{//左足
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(2.2f, -7.23f, 0.0f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(2.0f, -4.00f, 0.0f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -343,7 +344,7 @@ HRESULT InitPlayer(void)
 		{//右足
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(-2.2f, -7.23f, 0.0f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(-2.0f, -4.00f, 0.0f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -352,7 +353,7 @@ HRESULT InitPlayer(void)
 		{//右手の剣
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);	
-			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, -7.18f, -0.79f);	//ここの数値要注意、特にｚの符号
+			g_player.part[i].srt.pos = D3DXVECTOR3(-0.92f, -7.19f, -0.79f);	//ここの数値要注意、特にｚの符号
 
 			g_player.part[i].parent = &g_player.part[3];//右手を親にする！！
 			break;
@@ -662,13 +663,13 @@ void UpdatePlayer(void)
 
 		//縮小拡大
 		{
-			if (GetKeyboardPress(DIK_H))
+			if (GetKeyboardPress(DIK_J))
 			{
 				g_player.part[g_conId].srt.scl.x -= 0.1f;
 				g_player.part[g_conId].srt.scl.y -= 0.1f;
 				g_player.part[g_conId].srt.scl.z -= 0.1f;
 			}
-			else if (GetKeyboardPress(DIK_J))
+			else if (GetKeyboardPress(DIK_K))
 			{
 				g_player.part[g_conId].srt.scl.x += 0.1f;
 				g_player.part[g_conId].srt.scl.y += 0.1f;
@@ -692,7 +693,7 @@ void UpdatePlayer(void)
 
 		g_animeState = 0;//運動状態をリセット
 
-			//移動
+		//移動
 		if (GetKeyboardPress(DIK_A) || IsButtonPress(0, BUTTON_LEFT) || IsButtonPress(0, BUTTON_LSTICK_LEFT))
 		{
 			g_animeState = 1;//動く状態にする
