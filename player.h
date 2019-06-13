@@ -38,6 +38,9 @@ struct PART
 	LPD3DXMESH			pMesh;				// ID3DXMeshインターフェイスへのポインタ
 
 	SRT			srt;		//Scaling Rotation Translation
+	D3DXMATRIX	mtxS;
+	D3DXMATRIX	mtxR;
+	D3DXMATRIX	mtxT;
 	D3DXMATRIX	mtxWorld;
 	PART		*parent;
 	bool		use;

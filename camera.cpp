@@ -23,11 +23,11 @@
 #define	RATE_CHASE_CAMERA_P	(0.35f)					// カメラの視点への補正係数
 #define	RATE_CHASE_CAMERA_R	(0.20f)					// カメラの注視点への補正係数
 
-#define	CHASE_HEIGHT_P_NEAR		(50.0f)				// 追跡時の視点の高さ
+#define	CHASE_HEIGHT_P_NEAR		(70.0f)				// 追跡時の視点の高さ
 #define	CHASE_HEIGHT_P_FAR		(1700.0f)				// 追跡時の視点の高さ
 
-#define	RADIUS_NEAR		(400.0f)				// 視点と注視点のxoz面の距離
-#define	RADIUS_FAR		(150.0f)				// 視点と注視点のxoz面の距離
+#define	RADIUS_NEAR		(300.0f)				// 視点と注視点のxoz面の距離
+#define	RADIUS_FAR		(350.0f)				// 視点と注視点のxoz面の距離
 
 
 #define	CHASE_HEIGHT_R		(10.0f)					// 追跡時の注視点の高さ
@@ -87,7 +87,7 @@ HRESULT InitCamera(void)
 		g_chaseHightP = CHASE_HEIGHT_P_FAR;
 	}
 
-	g_posCameraP = D3DXVECTOR3(0.0f, 100.0f, - RADIUS_FAR);
+	g_posCameraP = D3DXVECTOR3(0.0f, 100.0f, - RADIUS_NEAR);
 	g_posCameraR = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	g_posCameraU = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 
