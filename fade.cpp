@@ -86,7 +86,7 @@ void UpdateFade(void)
 				}
 				else
 				{
-					mode = (MODE)(g_next_stage + MODE_GAME);
+					mode = (MODE)(g_next_stage );
 				}
 
 				// ƒ‚[ƒh‚ğİ’è

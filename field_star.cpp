@@ -21,7 +21,7 @@ using namespace warpzoneNS;
 extern PLAYER g_player;
 extern ENEMY g_enemy;
 extern int g_next_stage;
-
+extern STAGE_CLEAR g_stage_clear;
 
 //*********************モデルデータファイル名配列********************
 const char* FieldStarModelData[] = 
@@ -136,7 +136,6 @@ void UpdateFieldStar(void)
 	}
 }
 
-
 //=============================================================================
 // 描画処理
 //=============================================================================
@@ -200,15 +199,42 @@ void DrawFieldStarModel(void)
 
 void playerWarp( int i)
 {
-	// 
 	D3DXVECTOR2 A = D3DXVECTOR2(g_enemy.part[0].srt.pos.x, g_enemy.part[0].srt.pos.z);
 	D3DXVECTOR2 B = D3DXVECTOR2(FieldStar[i].pos.x, FieldStar[i].pos.z);
-	if (distanceVec2(A, B) <= into_warpzone)
+	if (distanceVec2(A, B) <= into_warpzone /*&& checkClearStage(i) == TRUE*/)
 	{
-		// ワープの具体的な処理
 		g_next_stage = i;
 		SetFade(FADE_OUT);
 	}
+}
+
+bool checkClearStage(int i)
+{
+	if (g_stage_clear.stage01 == TRUE && i == STAGE01)
+	{
+		return FALSE;
+	}
+	if (g_stage_clear.stage02 == TRUE && i == STAGE02)
+	{
+		return FALSE;
+	}
+	if (g_stage_clear.stage03 == TRUE && i == STAGE03)
+	{
+		return FALSE;
+	}
+	if (g_stage_clear.stage04 == TRUE && i == STAGE04)
+	{
+		return FALSE;
+	}
+	if (g_stage_clear.stage05 == TRUE && i == STAGE05)
+	{
+		return FALSE;
+	}
+	if (g_stage_clear.stage06 == TRUE && i == STAGE06)
+	{
+		return FALSE;
+	}
+	return TRUE;
 }
 
 float distanceVec2(D3DXVECTOR2 A, D3DXVECTOR2 B)
@@ -265,3 +291,31 @@ HRESULT initModeldata(MODEL3D* model3d, const char* modeldata)
 	 }
 	 return S_OK;
  }
+
+void returnClearTrue(MODE mode)
+{
+	if (mode = STAGE01)
+	{
+		g_stage_clear.stage01 = TRUE;
+	}
+	if (mode = STAGE02)
+	{
+		g_stage_clear.stage02 = TRUE;
+	}
+	if (mode = STAGE03)
+	{
+		g_stage_clear.stage03 = TRUE;
+	}
+	if (mode = STAGE04)
+	{
+		g_stage_clear.stage04 = TRUE;
+	}
+	if (mode = STAGE05)
+	{
+		g_stage_clear.stage05 = TRUE;
+	}
+	if (mode = STAGE06)
+	{
+		g_stage_clear.stage06 = TRUE;
+	}
+}

@@ -72,22 +72,34 @@ typedef struct
 } VERTEX_3D;
 
 
-
 //*************************************
 // モードの種類
 //*************************************
 typedef enum				//!!!
 {
-	MODE_TITLE = 0,			// タイトル画面
-	MODE_GAME,				// ゲーム画面
-	STAGE01,
+	STAGE01 = 1,
 	STAGE02,
 	STAGE03,
 	STAGE04,
 	STAGE05,
+	STAGE06,
+	MODE_TITLE = 10,			// タイトル画面
+	MODE_GAME,				// ゲーム画面
 	MODE_RESULT,			// リザルト画面
 	MODE_MAX
 } MODE;
+
+typedef struct
+{
+	// クリアしたかのフラグ
+	// ステージクリアしたらTRUEにする
+	bool stage01 = FALSE;
+	bool stage02 = FALSE;
+	bool stage03 = FALSE;
+	bool stage04 = FALSE;
+	bool stage05 = FALSE;
+	bool stage06 = FALSE;
+}STAGE_CLEAR;
 
 
 enum OBJECT

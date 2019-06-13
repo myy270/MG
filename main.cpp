@@ -43,6 +43,7 @@ int					g_nCountFPS;			// FPSカウンタ
 #endif
 MODE				g_mode = MODE_GAME;	// モード
 int					g_next_stage;
+STAGE_CLEAR g_stage_clear;
 
 int rest;
 

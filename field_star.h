@@ -27,7 +27,7 @@ namespace warpzoneNS
 	const D3DXVECTOR3 warp5 = D3DXVECTOR3(539, 0, -191);
 
 	// warpzoneからwarpする距離（キャラの中心-warpzoneの中心） 2次元ベクトルの距離
-	const float into_warpzone = 30;
+	const float into_warpzone = 10;
 }
 
 struct MODEL3D
@@ -63,6 +63,10 @@ void UpdateFieldStar(void);
 void DrawFieldStarModel(void);
 
 void playerWarp(int i);
+bool checkClearStage(int i);
 float distanceVec2(D3DXVECTOR2 A, D3DXVECTOR2 B);
+
+// クリア時呼び出し、現状のmodeを引数に入れる
+void returnClearTrue(MODE mode);
 
 #endif
