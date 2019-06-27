@@ -23,10 +23,10 @@
 #define	RATE_CHASE_CAMERA_P	(0.35f)					// カメラの視点への補正係数
 #define	RATE_CHASE_CAMERA_R	(0.20f)					// カメラの注視点への補正係数
 
-#define	CHASE_HEIGHT_P_NEAR		(70.0f)				// 追跡時の視点の高さ
+#define	CHASE_HEIGHT_P_NEAR		(136.0f)				// 追跡時の視点の高さ
 #define	CHASE_HEIGHT_P_FAR		(1700.0f)				// 追跡時の視点の高さ
 
-#define	RADIUS_NEAR		(300.0f)				// 視点と注視点のxoz面の距離
+#define	RADIUS_NEAR		(356.0f)				// 視点と注視点のxoz面の距離
 #define	RADIUS_FAR		(350.0f)				// 視点と注視点のxoz面の距離
 
 
@@ -113,12 +113,10 @@ void UninitCamera(void)
 //=============================================================================
 void UpdateCamera(void)
 {
-	D3DXVECTOR3 posPlayer;
+	
 	D3DXVECTOR3 rotPlayer;
 	D3DXVECTOR3 movePlayer;
 
-	// モデルの現在の位置取得
-	posPlayer = GetPositionPlayer();
 
 	//カメラモード変換
 	{
@@ -200,6 +198,25 @@ void UpdateCamera(void)
 
 #endif
 
+	PrintDebugProc("\n");
+
+	PrintDebugProc("chaseHightP:%f\n", g_chaseHightP);
+
+	PrintDebugProc("\n");
+
+	PrintDebugProc("LengthIntervalCamera:%f\n", g_fLengthIntervalCamera);
+
+	PrintDebugProc("\n");
+
+}
+
+
+void UpdateCamera2(void)
+{
+	D3DXVECTOR3 posPlayer;
+
+	// モデルの現在の位置取得
+	posPlayer = GetPositionPlayer();
 
 	if (g_cameraMode == CAMERA_MODE_NEAR)
 	{
@@ -242,29 +259,13 @@ void UpdateCamera(void)
 
 	}
 
-
-
-	PrintDebugProc("\n");
-	PrintDebugProc("\n");
-	PrintDebugProc("\n");
-
 	PrintDebugProc("[camera pos：(%f : %f : %f)]\n", g_posCameraP.x,
-											g_posCameraP.y, 
-											g_posCameraP.z);
-		
+		g_posCameraP.y,
+		g_posCameraP.z);
+
 	PrintDebugProc("[camera at：(%f : %f : %f)]\n", g_posCameraR.x,
-											g_posCameraR.y, 
-											g_posCameraR.z);
-
-	PrintDebugProc("\n");
-
-	PrintDebugProc("chaseHightP:%f\n", g_chaseHightP);
-
-	PrintDebugProc("\n");
-
-	PrintDebugProc("LengthIntervalCamera:%f\n", g_fLengthIntervalCamera);
-
-	PrintDebugProc("\n");
+		g_posCameraR.y,
+		g_posCameraR.z);
 
 }
 

@@ -41,6 +41,7 @@ extern HWND hWnd;
 void WriteAnime();
 void AnimeWalk(KEY g_anime[]);
 void AnimeKen(KEY g_anime[]);
+void AnimeKen3(KEY g_anime[]);
 
 //*****************************************************************************
 // グローバル変数
@@ -49,22 +50,28 @@ LPDIRECT3DTEXTURE9	g_pD3DTexturePlayer;		// テクスチャ読み込み場所
 LPDIRECT3DTEXTURE9	g_pD3DTextureSword;		// テクスチャ読み込み場所
 PLAYER				g_player;					// プレイヤーワーク
 
-int g_mode = MODE_EDIT;//編輯モードかどうか
+int g_mode = MODE_INGAME;//編輯モードかどうか
 
 int g_conId = 0;	//デフォルトのコントロールID
 
 float g_motionTime = 0.0f;	// アニメーション全体時間　歩く
 float g_motionTime2 = 0.0f;	// アニメーション全体時間　剣
+float g_motionTime3 = 0.0f;	// アニメーション全体時間　剣
 
 int g_keyMax;				//キーフレームの数
 
 bool g_animeState = 0;		//運動状態かどうか　歩く
 bool g_animeStateKen = 0;
+bool g_animeStateKen3= 0;
 
 float g_cancelTime = 0.0f;// 最初状態に戻る時間 歩く
 
 D3DXMATRIX mtxBuff;
+D3DXMATRIX mtxBuff3;
 
+D3DXVECTOR3 vctBuff3;
+float rotY;	//ジャンプ斬りを発動時の方向を記録する
+D3DXMATRIX rotYMtx;
 //走るキー情報
 KEY g_animeWalk[] =
 {
@@ -557,6 +564,202 @@ KEY g_animeKen[] =
 
 };
 
+KEY g_animeKen3[] =
+{
+	{
+		30,
+		{
+			{// part 0
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,0.0000f),//T
+			},
+
+			{// part 1
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// part 2
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 3
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 4
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 5
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-0.7900f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////
+
+	{
+		40,
+		{
+			{// part 0
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.5498f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,85.7199f,-137.4752f),//T
+			},
+
+			{// part 1
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.1571f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// part 2
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(1.8064f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 3
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(2.7489f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 4
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.8639f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 5
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.3927f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-0.7900f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////
+
+	{
+		15,
+		{
+			{// part 0
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(-0.2356f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,-316.4919f),//T
+			},
+
+			{// part 1
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.1571f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// part 2
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.7069f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 3
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.8639f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 4
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.7069f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 5
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.7069f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-0.7900f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////
+
+	{
+		1000,
+		{
+			{// part 0
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,-316.4919f),//T
+			},
+
+			{// part 1
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// part 2
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 3
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 4
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 5
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-0.7900f),//T
+			},
+
+		}
+},///////////////////////////////////////////////////////////////////////////////////
+};
+
+
 //=============================================================================
 // 初期化処理
 //=============================================================================
@@ -986,10 +1189,13 @@ void UpdatePlayer(void)
 			g_player.rotDest.y = rotCamera.y;
 		}
 
+		if (g_animeStateKen3 == 0)
+		{
+			AnimeWalk(g_animeWalk);
+		}
+		AnimeKen3(g_animeKen3);
 
-		AnimeWalk(g_animeWalk);
 		AnimeKen(g_animeKen);
-
 		// 目的の角度までの差分
 		fDiffRotY = g_player.rotDest.y - g_player.part[0].srt.rot.y;//体を基準に
 		if (fDiffRotY > D3DX_PI)
@@ -1012,7 +1218,7 @@ void UpdatePlayer(void)
 			g_player.part[0].srt.rot.y += D3DX_PI * 2.0f;
 		}
 
-		/// 位置移動を反映
+		// 位置移動を反映
 		g_player.part[0].srt.pos.x += g_player.move.x;//体に反映
 		g_player.part[0].srt.pos.y += g_player.move.y;
 		g_player.part[0].srt.pos.z += g_player.move.z;
@@ -1085,6 +1291,7 @@ void UpdatePlayer(void)
 											g_player.part[g_conId].srt.pos.z);
 
 	PrintDebugProc("目的向き：%f \n\n", g_player.rotDest.y);
+	PrintDebugProc("プレイヤーの運動量：%f,%f,%f \n\n", g_player.move.x, g_player.move.y, g_player.move.z);
 
 }
 
@@ -1115,6 +1322,28 @@ void DrawPlayer(void)
 			
 			g_player.part[i].mtxS = mtxScl;
 
+			//if ((g_animeStateKen3) && (i == BODY))
+			//{
+			//	// 移動を反映
+			//	D3DXMatrixTranslation(&mtxTranslate, g_player.part[i].srt.pos.x,
+			//		g_player.part[i].srt.pos.y,
+			//		g_player.part[i].srt.pos.z);
+			//	D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxTranslate);
+
+			//	g_player.part[i].mtxT = mtxTranslate;
+
+			//	// 回転を反映
+			//	D3DXMatrixRotationYawPitchRoll(&mtxRot, g_player.part[i].srt.rot.y,
+			//		g_player.part[i].srt.rot.x,
+			//		g_player.part[i].srt.rot.z);
+			//	D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxRot);
+
+			//	g_player.part[i].mtxR = mtxRot;
+
+
+			//}
+			//else
+			
 			// 回転を反映
 			D3DXMatrixRotationYawPitchRoll(&mtxRot, g_player.part[i].srt.rot.y,
 				g_player.part[i].srt.rot.x,
@@ -1124,12 +1353,20 @@ void DrawPlayer(void)
 			g_player.part[i].mtxR = mtxRot;
 
 			// 移動を反映
+
+
+
 			D3DXMatrixTranslation(&mtxTranslate, g_player.part[i].srt.pos.x,
 				g_player.part[i].srt.pos.y,
 				g_player.part[i].srt.pos.z);
 			D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxTranslate);
 
 			g_player.part[i].mtxT = mtxTranslate;
+			
+
+			
+
+
 
 			//親が存在する場合は親のワールドマトリクスを合成
 			if (g_player.part[i].parent)
@@ -1143,8 +1380,11 @@ void DrawPlayer(void)
 				{
 					D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &g_player.part[i].parent->mtxWorld);
 				}
-				
+
+
 			}
+
+
 
 			g_player.part[i].mtxWorld = mtxWorld;//ワールドマトリクスを保存
 
@@ -1220,7 +1460,7 @@ D3DXVECTOR3 GetMovePlayer(void)
 void WriteAnime()
 {
 	FILE *fp;
-	fp = fopen("animeKen4.txt", "a+");//"a+"は書き込みのモード。ファイルがないと、自動に作成
+	fp = fopen("animeKen5.txt", "a+");//"a+"は書き込みのモード。ファイルがないと、自動に作成
 	if (fp == NULL)
 	{
 		return;
@@ -1495,7 +1735,7 @@ void AnimeKen(KEY g_anime[])
 {
 	if (g_animeStateKen == 0)
 	{
-		if (GetKeyboardPress(DIK_L))
+		if (GetKeyboardPress(DIK_J))
 		{
 			g_animeStateKen = 1;//動く状態にする	
 			
@@ -1575,9 +1815,106 @@ void AnimeKen(KEY g_anime[])
 
 	}
 
+}
 
 
+void AnimeKen3(KEY g_anime[])
+{
+	if (g_animeStateKen3 == 0)
+	{
+		if (GetKeyboardPress(DIK_K))
+		{
+			g_animeStateKen3 = 1;//動く状態にする	
+			g_motionTime3 = 0.0f;
+	
+			vctBuff3 = D3DXVECTOR3( g_player.part[0].srt.pos.x,
+									0.0f,
+									g_player.part[0].srt.pos.z);
 
+			rotY = g_player.part[0].srt.rot.y;
+
+
+		}
+
+	}
+
+	if (g_animeStateKen3)
+	{
+		g_keyMax = sizeof(g_animeKen3) / sizeof(KEY);//sizeof(g_anime)ではダメ
+
+		//アニメーション 
+		int i = (int)g_motionTime3;  //i:現在のキーフレームナンバー
+
+		float dt = 1.0f / g_anime[i].frame;//補間の間隔時間
+
+		//完成したら、元の状態に戻る
+		if (i > g_keyMax - 2)//最大キーフレームナンバーを超えたら
+		{
+			i = g_keyMax - 2;//最大キーフレームナンバーにする
+
+			g_animeStateKen3 = 0;
+			g_motionTime = 0.0f;		//着地時、走る時間リセット	ジャンプと走るモーションがスムーズにつながるポイント！
+		}
+
+		g_motionTime3 += dt;
+
+		if (g_motionTime3 > g_keyMax - 1.0f)//最大時間を超えたら
+		{
+			g_motionTime3 = g_keyMax - 1.0f;//最大最大時間にする
+
+		}
+
+		if (g_motionTime3 - i > 1.0f) //誤差を修正　想定の1.0を超えたら
+		{
+			i++;//次のキーフレームに入る
+		}
+
+		//接続の補間は　[i] * 1.0です、[i + 1] * 0.0ではない
+		for (int j = 0; j < PART_MAX; j++)//パーツ番号
+		{
+			// Rotation
+			g_player.part[j].srt.rot.x = g_anime[i].key[j].rot.x +				// 前のキーフレーム位置
+				(g_anime[i + 1].key[j].rot.x - g_anime[i].key[j].rot.x)			// 前のキーフレームと次のキーフレームの差分
+				* (g_motionTime3 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+			//g_player.part[j].srt.rot.y = g_anime[i].key[j].rot.y +				// 前のキーフレーム位置
+			//	(g_anime[i + 1].key[j].rot.y - g_anime[i].key[j].rot.y)			// 前のキーフレームと次のキーフレームの差分
+			//	* (g_motionTime3 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+			g_player.part[j].srt.rot.z = g_anime[i].key[j].rot.z +				// 前のキーフレーム位置
+				(g_anime[i + 1].key[j].rot.z - g_anime[i].key[j].rot.z)			// 前のキーフレームと次のキーフレームの差分
+				* (g_motionTime3 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+			 //Position
+			g_player.part[j].srt.pos.x = g_anime[i].key[j].pos.x +				// 前のキーフレーム位置
+				(g_anime[i + 1].key[j].pos.x - g_anime[i].key[j].pos.x)			// 前のキーフレームと次のキーフレームの差分
+				* (g_motionTime3 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+			g_player.part[j].srt.pos.y = g_anime[i].key[j].pos.y +				// 前のキーフレーム位置
+				(g_anime[i + 1].key[j].pos.y - g_anime[i].key[j].pos.y)			// 前のキーフレームと次のキーフレームの差分
+				* (g_motionTime3 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+			g_player.part[j].srt.pos.z = g_anime[i].key[j].pos.z +				// 前のキーフレーム位置
+				(g_anime[i + 1].key[j].pos.z - g_anime[i].key[j].pos.z)			// 前のキーフレームと次のキーフレームの差分
+				* (g_motionTime3 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+		}
+
+		//目の前の方向にモーションするように
+		D3DXMatrixIdentity(&rotYMtx);
+		D3DXMatrixRotationY(&rotYMtx,rotY);
+		D3DXVec3TransformCoord(&g_player.part[BODY].srt.pos,
+									&g_player.part[BODY].srt.pos,
+									&rotYMtx);
+
+		g_player.part[BODY].srt.pos.x = g_player.part[BODY].srt.pos.x + vctBuff3.x;		//原点ではなく、立っている場所で発動
+		g_player.part[BODY].srt.pos.z = g_player.part[BODY].srt.pos.z + vctBuff3.z;
+
+		g_player.move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+
+
+	}
+
+	PrintDebugProc("今のフレームパターン：%d \n\n", (int)g_motionTime3);
 
 }
 

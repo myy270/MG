@@ -225,6 +225,8 @@ void UpdateGame(void)
 	// プレイヤー処理の更新
 	UpdatePlayer();
 
+	UpdateCamera2();	//カメラがプレイヤーの最新位置に従う、プレイヤーが前後フレームにちらつきのBUGを修正
+
 	UpdateEnemy();
 
 	// 弾処理の更新

@@ -14,7 +14,9 @@
 //*****************************************************************************
 HRESULT InitCamera(void);
 void UninitCamera(void);
+
 void UpdateCamera(void);
+void UpdateCamera2(void);
 
 void SetCamera(void);
 
