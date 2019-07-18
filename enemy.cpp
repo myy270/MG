@@ -425,7 +425,7 @@ void UpdateEnemy(void)
 	{//AIモードの切替　即ち、シングルモードとダブルモードの切替
 		g_ai = !g_ai;
 		g_left = g_right = g_up = g_down = 0;
-		SetPlayMode((PLAY_MODE)!GetPlayMode());
+		//SetPlayMode((PLAY_MODE)!GetPlayMode());
 
 		if (GetPlayMode() == PLAY_MODE_DOUBLE)
 		{
