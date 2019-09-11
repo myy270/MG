@@ -17,15 +17,21 @@
 #include "explosion.h"
 #include "life.h"
 #include "timer.h"
-#include "score.h"
+//#include "score.h"
 #include "item.h"
-#include "sound.h"
-#include "field_star.h"
+
+//#include "sound.h"
+
 
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
 #define TIMESET			(999)	//タイマーの時間
+
+
+
+
+
 
 //*****************************************************************************
 // プロトタイプ宣言
@@ -127,7 +133,7 @@ HRESULT InitGame(void)
 	ResetTimer(TIMESET);
 
 	// スコアの初期化
-	InitScore();
+	//InitScore();
 
 	// アイテムの初期化
 	InitItem();
@@ -143,7 +149,7 @@ HRESULT InitGame(void)
 	}
 
 	// BGM再生 ちゃんとloopできるにする!　元の罠
-	PlaySound(SOUND_LABEL_BGM000, XAUDIO2_LOOP_INFINITE);
+	//PlaySound(SOUND_LABEL_BGM000, XAUDIO2_LOOP_INFINITE);
 
 	return S_OK;
 }
@@ -189,13 +195,13 @@ void UninitGame(void)
 	UninitTimer();
 
 	// スコアの終了処理
-	UninitScore();
+	//UninitScore();
 
 	// アイテムの終了処理
 	UninitItem();
 
 	// BGM停止 !!元の罠
-	StopSound(SOUND_LABEL_BGM000);
+	//StopSound(SOUND_LABEL_BGM000);
 }
 
 //=============================================================================
@@ -221,6 +227,8 @@ void UpdateGame(void)
 	// プレイヤー処理の更新
 	UpdatePlayer();
 
+	UpdateCamera2();	//カメラがプレイヤーの最新位置に従う、プレイヤーが前後フレームにちらつきのBUGを修正
+
 	UpdateEnemy();
 
 	// 弾処理の更新
@@ -239,7 +247,7 @@ void UpdateGame(void)
 	UpdateTimer();
 
 	// スコア処理の更新
-	UpdateScore();
+	//UpdateScore();
 
 	// アイテム処理の更新
 	UpdateItem();
@@ -259,24 +267,28 @@ void DrawGame(void)
 	DrawMeshField();
 	DrawFieldStarModel();
 	// 影処理の描画
-	DrawShadow();
+	//DrawShadow();
 
 	// プレイヤー処理の描画
 	DrawPlayer();
 
 	DrawEnemy();
 
-	// アイテム処理の描画
-	DrawItem();
+
+	//if () 
+	//{
+	//// アイテム処理の描画
+	////DrawItem();
+	//}
 
 	// 弾処理の描画
 	DrawBullet();
 
 	// エフェクト処理の描画
-	DrawEffect();
+	//DrawEffect();
 
 	// 壁処理の描画
-	DrawMeshWall();
+	//DrawMeshWall();
 
 	// 爆発処理の描画
 	DrawExplosion();
@@ -288,6 +300,6 @@ void DrawGame(void)
 	DrawTimer();
 
 	// スコア処理の描画
-	DrawScore();
+	//DrawScore();
 }
 

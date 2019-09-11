@@ -7,24 +7,23 @@
 #include "player.h"
 #include "camera.h"
 #include "input.h"
-#include "shadow.h"
-#include "bullet.h"
-#include "effect.h"
-#include "item.h"
-#include "score.h"
-#include "sound.h"
 #include "debugproc.h"
-#include "timer.h"
+
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define	BODY_PLAYER		"data/MODEL/bearBody.x"	// 読み込むモデル名
-#define	HEAD_PLAYER		"data/MODEL/bearHead.x"	// 読み込むモデル名
-#define	HAND_PLAYER		"data/MODEL/bearHand.x"	// 読み込むモデル名
-#define	LEG_PLAYER		"data/MODEL/bearLeg.x"	// 読み込むモデル名
-#define	ICE_BLOCK		"data/MODEL/iceBlock.x"		// 読み込むモデル名
 
+#define	BODY_PLAYER		"data/mere god/body.x"	// 読み込むモデル名
+#define	HEAD_PLAYER		"data/mere god/head.x"	// 読み込むモデル名
+#define	HAND_L_PLAYER		"data/mere god/hand_L.x"	// 読み込むモデル名
+#define	HAND_R_PLAYER		"data/mere god/hand_R.x"	// 読み込むモデル名
+#define	LEG_L_PLAYER		"data/mere god/leg_L.x"	// 読み込むモデル名
+#define	LEG_R_PLAYER		"data/mere god/leg_R.x"	// 読み込むモデル名
 
+#define	SWORD_PLAYER	"data/mere god/sword.x"		// 読み込むモデル名
+
+#define	TEXTURE_PLAYER	"data/mere god/knight.png"		// 読み込むモデル名
+#define	TEXTURE_SWORD	"data/mere god/kenn.png"		// 読み込むモデル名
 
 #define	PLAYER_RADIUS		(15.0f)						// 半径
 
@@ -34,32 +33,56 @@
 #define	VALUE_ROTATE_PLAYER	(D3DX_PI * 0.025f)			// 回転速度 4.5度
 #define	RATE_ROTATE_PLAYER	(0.10f)						// 回転慣性係数
 
-#define	VALUE_MOVE_BULLET	(7.5f)						// 弾の移動速度
 
+extern HWND hWnd;
 //*****************************************************************************
 // プロトタイプ宣言
 //*****************************************************************************
 void WriteAnime();
-void AnimeWalk();
+void AnimeWalk(KEY g_anime[]);
+void AnimeKen(KEY g_anime[]);
+void AnimeKen3(KEY g_anime[]);
+void AnimeKen4(KEY g_anime[]);	//剣を振り下ろす
 
 
 //*****************************************************************************
 // グローバル変数
 //*****************************************************************************
 LPDIRECT3DTEXTURE9	g_pD3DTexturePlayer;		// テクスチャ読み込み場所
+LPDIRECT3DTEXTURE9	g_pD3DTextureSword;		// テクスチャ読み込み場所
 PLAYER				g_player;					// プレイヤーワーク
 
-int g_mode = MODE_TITLE;//編輯モードかどうか
-int g_conId = 0;//コントロールID
+int g_mode = MODE_INGAME;//編輯モードかどうか
 
-float g_motionTime = 0.0f;	// アニメーション全体時間
+int g_conId = 0;	//デフォルトのコントロールID
+
+float g_motionTime = 0.0f;	// アニメーション全体時間　歩く
+float g_motionTime2 = 0.0f;	// アニメーション全体時間　剣
+float g_motionTime3 = 0.0f;	// アニメーション全体時間　剣
+float g_motionTime4 = 0.0f;	// アニメーション全体時間　剣
+
+
 int g_keyMax;				//キーフレームの数
-bool g_animeState = 0;		//動くかどうか
 
-float g_cancelTime = 0.0f;// 最初状態に戻る時間
+bool g_animeState = 0;		//運動状態かどうか　歩く
+bool g_animeStateKen = 0;
+bool g_animeStateKen3= 0;
+
+bool g_animeStateKen4 = 0;
 
 
-KEY g_anime[] =
+float g_cancelTime = 0.0f;// 最初状態に戻る時間 歩く
+
+D3DXMATRIX mtxBuff;
+
+D3DXVECTOR3 vctBuff3;
+
+D3DXVECTOR3 vctBuff4;
+
+float rotY;	//ジャンプ斬りを発動時の方向を記録する
+D3DXMATRIX rotYMtx;
+//走るキー情報
+KEY g_animeWalk[] =
 {
 	{
 		15,
@@ -84,7 +107,7 @@ KEY g_anime[] =
 
 			{// part 3
 				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
-				D3DXVECTOR3(0.0000f,3.1416f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
 				D3DXVECTOR3(-5.0000f,5.0000f,0.0000f),//T
 			},
 
@@ -99,6 +122,13 @@ KEY g_anime[] =
 				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
 				D3DXVECTOR3(-3.0640f,-4.8730f,-0.4090f),//T
 			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0f, -7.18f, -0.79f),//T
+			},
+
 
 		}
 	},///////////////////////////////////////////////////////////////////////////////////
@@ -126,7 +156,7 @@ KEY g_anime[] =
 
 			{// part 3
 				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
-				D3DXVECTOR3(0.7069f,3.1416f,0.0000f),//R
+				D3DXVECTOR3(-0.7069f,0.0000f,0.0000f),//R
 				D3DXVECTOR3(-5.0000f,5.0000f,0.0000f),//T
 			},
 
@@ -141,6 +171,13 @@ KEY g_anime[] =
 				D3DXVECTOR3(0.9425f,0.0000f,0.0000f),//R
 				D3DXVECTOR3(-3.0640f,-4.8730f,-0.4090f),//T
 			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0f, -7.18f, -0.79f),//T
+			},
+
 
 		}
 	},///////////////////////////////////////////////////////////////////////////////////
@@ -168,7 +205,7 @@ KEY g_anime[] =
 
 			{// part 3
 				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
-				D3DXVECTOR3(-1.0996f,3.1416f,0.0000f),//R
+				D3DXVECTOR3(1.0996f,0.0000f,0.0000f),//R
 				D3DXVECTOR3(-5.0000f,5.0000f,0.0000f),//T
 			},
 
@@ -182,6 +219,12 @@ KEY g_anime[] =
 				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
 				D3DXVECTOR3(-1.0854f,0.0000f,0.0000f),//R
 				D3DXVECTOR3(-3.0640f,-4.8730f,-0.4090f),//T
+			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0f, -7.18f, -0.79f),//T
 			},
 
 		}
@@ -210,7 +253,7 @@ KEY g_anime[] =
 
 			{// part 3
 				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
-				D3DXVECTOR3(0.7069f,3.1416f,0.0000f),//R
+				D3DXVECTOR3(-0.7069f,0.0000f,0.0000f),//R
 				D3DXVECTOR3(-5.0000f,5.0000f,0.0000f),//T
 			},
 
@@ -226,8 +269,746 @@ KEY g_anime[] =
 				D3DXVECTOR3(-3.0640f,-4.8730f,-0.4090f),//T
 			},
 
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0f, -7.18f, -0.79f),//T
+			},
+
 		}
 	},///////////////////////////////////////////////////////////////////////////////////
+
+};
+
+KEY g_animeKen[] =
+{
+	{
+		30,
+		{
+			{// part 0
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,0.0000f),//T
+			},
+
+			{// part 1
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// part 2
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 3
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 4
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 5
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-0.7900f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////
+
+	{
+		30,
+		{
+			{// part 0
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,0.0000f),//T
+			},
+
+			{// part 1
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// part 2
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 3
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 4
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 5
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(12.5664f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-65.1650f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////
+
+	{
+		30,
+		{
+			{// part 0
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,0.0000f),//T
+			},
+
+			{// part 1
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// part 2
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 3
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 4
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 5
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(25.1326f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-55.1650f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////
+
+	{
+		30,
+		{
+			{// part 0
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,0.0000f),//T
+			},
+
+			{// part 1
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// part 2
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 3
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 4
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 5
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(37.7775f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-65.1650f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////
+
+	{
+		30,
+		{
+			{// part 0
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,0.0000f),//T
+			},
+
+			{// part 1
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// part 2
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 3
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 4
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 5
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(50.2655f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-55.1650f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////
+
+	{
+		30,
+		{
+			{// part 0
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,0.0000f),//T
+			},
+
+			{// part 1
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// part 2
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 3
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 4
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 5
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(62.9106f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-65.1650f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////
+
+
+};
+
+KEY g_animeKen3[] =
+{
+	{
+		30,
+		{
+			{// part 0
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,0.0000f),//T
+			},
+
+			{// part 1
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// part 2
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 3
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 4
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 5
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-0.7900f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////
+
+	{
+		40,
+		{
+			{// part 0
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.5498f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,85.7199f,-137.4752f),//T
+			},
+
+			{// part 1
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.1571f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// part 2
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(1.8064f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 3
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(2.7489f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 4
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.8639f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 5
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.3927f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-0.7900f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////
+
+	{
+		15,
+		{
+			{// part 0
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(-0.2356f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,-316.4919f),//T
+			},
+
+			{// part 1
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.1571f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// part 2
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.7069f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 3
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.8639f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 4
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.7069f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 5
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.7069f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-0.7900f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////
+
+	{
+		1000,
+		{
+			{// part 0
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,-316.4919f),//T
+			},
+
+			{// part 1
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// part 2
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 3
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// part 4
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 5
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// part 6
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-0.7900f),//T
+			},
+
+		}
+},///////////////////////////////////////////////////////////////////////////////////
+};
+
+KEY g_animeKen4[] =
+{
+	{
+		5,
+		{
+			{// パーツ番号:0 
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0131f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,0.0000f),//T
+			},
+
+			{// パーツ番号:1 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// パーツ番号:2 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// パーツ番号:3 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0524f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// パーツ番号:4 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// パーツ番号:5 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.0785f,-0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// パーツ番号:6 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-0.7900f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////キーフレーム番号:0 
+
+	{
+		10,
+		{
+			{// パーツ番号:0 
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0873f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,0.0000f),//T
+			},
+
+			{// パーツ番号:1 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// パーツ番号:2 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// パーツ番号:3 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.3491f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// パーツ番号:4 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// パーツ番号:5 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.5236f,-0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// パーツ番号:6 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-0.7900f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////キーフレーム番号:1 
+
+	{
+		10,
+		{
+			{// パーツ番号:0 
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.1745f,0.2618f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,0.0000f),//T
+			},
+
+			{// パーツ番号:1 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,-0.2618f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// パーツ番号:2 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// パーツ番号:3 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(1.6581f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// パーツ番号:4 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// パーツ番号:5 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.4363f,-0.0873f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// パーツ番号:6 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-0.7900f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////キーフレーム番号:2 
+
+	{
+		20,
+		{
+			{// パーツ番号:0 
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.1745f,0.2618f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,0.0000f),//T
+			},
+
+			{// パーツ番号:1 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,-0.2618f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// パーツ番号:2 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// パーツ番号:3 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(3.3161f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// パーツ番号:4 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// パーツ番号:5 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.4363f,-0.0873f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// パーツ番号:6 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-0.7900f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////キーフレーム番号:3 
+
+	{
+		9999,
+		{
+			{// パーツ番号:0 
+				D3DXVECTOR3(2.0000f,2.0000f,2.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0131f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,28.0000f,0.0000f),//T
+			},
+
+			{// パーツ番号:1 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(0.0000f,7.0600f,0.0900f),//T
+			},
+
+			{// パーツ番号:2 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// パーツ番号:3 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0524f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-7.0100f,4.8200f,-0.4900f),//T
+			},
+
+			{// パーツ番号:4 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// パーツ番号:5 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(-0.0785f,-0.0000f,0.0000f),//R
+				D3DXVECTOR3(-2.0000f,-4.0000f,0.0000f),//T
+			},
+
+			{// パーツ番号:6 
+				D3DXVECTOR3(1.0000f,1.0000f,1.0000f),//S
+				D3DXVECTOR3(0.0000f,0.0000f,0.0000f),//R
+				D3DXVECTOR3(-0.9200f,-7.1900f,-0.7900f),//T
+			},
+
+		}
+	},///////////////////////////////////////////////////////////////////////////////////キーフレーム番号:4 
 
 };
 
@@ -240,18 +1021,16 @@ HRESULT InitPlayer(void)
 {
 	
 
-	g_keyMax = sizeof(g_anime) / sizeof(KEY);
-
 	LPDIRECT3DDEVICE9 pDevice = GetDevice();
 
 	g_player.part[0].partFile = (char *)BODY_PLAYER;//親は一番先にしなければならない
 	g_player.part[1].partFile = (char *)HEAD_PLAYER;//(const char *)から(char *)に変換
-	g_player.part[2].partFile = (char *)HAND_PLAYER;//左手
-	g_player.part[3].partFile = (char *)HAND_PLAYER;//右手
-	g_player.part[4].partFile = (char *)LEG_PLAYER;//左足
-	g_player.part[5].partFile = (char *)LEG_PLAYER;//右足
+	g_player.part[2].partFile = (char *)HAND_L_PLAYER;//左手
+	g_player.part[3].partFile = (char *)HAND_R_PLAYER;//右手
+	g_player.part[4].partFile = (char *)LEG_L_PLAYER;//左足
+	g_player.part[5].partFile = (char *)LEG_R_PLAYER;//右足
 
-	g_player.part[6].partFile = (char *)ICE_BLOCK;//氷
+	g_player.part[6].partFile = (char *)SWORD_PLAYER;//右手の剣
 
 	for (int i = 0; i < PART_MAX; i++)//パーツ番号
 	{
@@ -265,16 +1044,17 @@ HRESULT InitPlayer(void)
 									&g_player.part[i].nNumMat,
 									&g_player.part[i].pMesh)))
 		{
+			MessageBox(hWnd, _T("Xファイルの読み込みに失敗しました"), _T("error"), MB_OK | MB_ICONERROR);
 			return E_FAIL;
 		}
 
 		switch (i)
-		{//初期値 pos.yは足が地面に触れるような数値
+		{//初期値
 		case 0:
 		{//体
-			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);//xyz必ず同じように
+			g_player.part[i].srt.scl = D3DXVECTOR3(2.0f, 2.0f, 2.0f);//xyz必ず同じように
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 22.4f, 0.0f);//足が地面に触れるよう、15.0
+			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 28.0f, 0.0f);// pos.yは足が地面に触れるような数値
 
 			g_player.part[i].parent = NULL;//体の親はNULLにする
 			break;
@@ -283,7 +1063,7 @@ HRESULT InitPlayer(void)
 		{//頭
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 6.5f, 0.0f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 7.06f,  0.09f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -292,7 +1072,7 @@ HRESULT InitPlayer(void)
 		{//左手
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(5.0f, 5.0f, 0.0f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(7.01f, 4.82f, -0.49f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -300,8 +1080,8 @@ HRESULT InitPlayer(void)
 		case 3:
 		{//右手
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
-			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, D3DX_PI, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(-5.0f, 5.0f, 0.0f);
+			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(-7.01f, 4.82f, -0.49f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -310,7 +1090,7 @@ HRESULT InitPlayer(void)
 		{//左足
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(3.064f, -4.873f, -0.409f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(2.0f, -4.00f, 0.0f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -319,50 +1099,46 @@ HRESULT InitPlayer(void)
 		{//右足
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(-3.064f, -4.873f, -0.409f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(-2.0f, -4.00f, 0.0f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
 		}
-
-		default:
-		{
+		case 6:
+		{//右手の剣
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
-			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);	
+			g_player.part[i].srt.pos = D3DXVECTOR3(-0.92f, -7.19f, -0.79f);	//ここの数値要注意、特にｚの符号
 
-			g_player.part[i].parent = &g_player.part[0];//体を親にする
+			g_player.part[i].parent = &g_player.part[3];//右手を親にする！！
 			break;
 		}
 
 		}
 
-		if (i != 6)
-		{
-			g_player.part[i].use = true;
-		}
-		else
-		{
-			g_player.part[i].use = false;
-		}
+		g_player.part[i].use = true;
+
 	}
 
 	g_player.move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	g_player.rotDest = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-	g_player.fRadius = PLAYER_RADIUS;
-	// 影を設定 //体を基準に
-	g_player.nIdxShadow = SetShadow(g_player.part[0].srt.pos, g_player.fRadius * 2.0f, g_player.fRadius * 2.0f);
+	g_player.fRadius = PLAYER_RADIUS;	//影のサイズ用、当たり判定用　
 
-
-	g_player.holdItem = ITEMTYPE_COIN;
 	g_player.state = NORMAL;
-	g_player.stateTime = 0;
+	
 
-#if 0
+#if 1
 	// テクスチャの読み込み
 	D3DXCreateTextureFromFile(pDevice,					// デバイスへのポインタ
-								TEXTURE_PLAYER,		// ファイルの名前
+								TEXTURE_PLAYER,			// ファイルの名前
 								&g_pD3DTexturePlayer);	// 読み込むメモリー
+
+		// テクスチャの読み込み
+	D3DXCreateTextureFromFile(pDevice,						// デバイスへのポインタ
+								TEXTURE_SWORD,				// ファイルの名前
+								&g_pD3DTextureSword);	// 読み込むメモリー
+
+
 #endif
 
 	return S_OK;
@@ -393,6 +1169,8 @@ void UninitPlayer(void)
 		g_pD3DTexturePlayer->Release();
 		g_pD3DTexturePlayer = NULL;
 	}
+
+	SAFE_RELEASE(g_pD3DTextureSword);
 }
 
 //=============================================================================
@@ -402,14 +1180,19 @@ void UpdatePlayer(void)
 {
 #ifdef _DEBUG
 	//モードの入力
-	//if (GetKeyboardPress(DIK_1))
-	//{
-	//	g_mode = MODE_PLAY;
-	//}
+	if (GetKeyboardPress(DIK_1))
+	{
+		g_mode = MODE_PLAY;
+	}
 	if (GetKeyboardPress(DIK_2))
 	{
 		g_mode = MODE_EDIT;
 	}
+	if (GetKeyboardPress(DIK_3))
+	{
+		g_mode = MODE_INGAME;
+	}
+
 
 	//コントロールIDの入力
 	if (GetKeyboardPress(DIK_NUMPAD0))
@@ -436,6 +1219,12 @@ void UpdatePlayer(void)
 	{
 		g_conId = 5;
 	}
+	else if (GetKeyboardPress(DIK_NUMPAD6))
+	{
+		g_conId = 6;
+	}
+
+
 #endif
 
 
@@ -446,91 +1235,131 @@ void UpdatePlayer(void)
 	{
 	case MODE_PLAY:
 	{
-		//アニメーション 
-		int i = (int)g_motionTime;  //現在のキーフレームナンバー
-
-		//if (i > g_keyMax - 2)//最大キーフレームナンバーを超えたら
-		//{
-		//	i = g_keyMax - 2;//最大キーフレームナンバーにする
-		//}
-
-		//loopできるように
-		if (i > g_keyMax - 2)//最大キーフレームナンバーを超えたら
-		{
-			i = 1;
-			g_motionTime = 1.0f;
-		}
-
-		float dt = 1.0f / g_anime[i].frame;//補間の間隔時間
-
-		g_motionTime += dt;
-
-		if (g_motionTime > g_keyMax - 1.0f)//最大時間を超えたら
-		{
-			g_motionTime = g_keyMax - 1.0f;//最大最大時間にする
-		}
-
-		if (g_motionTime - i > 1.0f) //誤差を修正　想定の1.0を超えたら
-		{
-			i++;//次のキーフレームに入る
-		}
-
-		//if (GetKeyboardPress(DIK_SPACE))
-		//{
-		//	g_motionTime = 0.0f;	//リセット
-		//	i = (int)g_motionTime;	//重要
-		//}
-
-		if (1)
-		{
-			//接続の補間は　[i] * 1.0です、[i + 1] * 0.0ではない
-			for (int j = 0; j < PART_MAX; j++)//パーツ番号
-			{
-				// Scale
-				g_player.part[j].srt.scl.x = g_anime[i].key[j].scl.x +				// 前のキーフレーム位置
-					(g_anime[i + 1].key[j].scl.x - g_anime[i].key[j].scl.x)			// 前のキーフレームと次のキーフレームの差分
-					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-				g_player.part[j].srt.scl.y = g_anime[i].key[j].scl.y +				// 前のキーフレーム位置
-					(g_anime[i + 1].key[j].scl.y - g_anime[i].key[j].scl.y)			// 前のキーフレームと次のキーフレームの差分
-					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-				g_player.part[j].srt.scl.z = g_anime[i].key[j].scl.z +				// 前のキーフレーム位置
-					(g_anime[i + 1].key[j].scl.z - g_anime[i].key[j].scl.z)			// 前のキーフレームと次のキーフレームの差分
-					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-				// Rotation
-				g_player.part[j].srt.rot.x = g_anime[i].key[j].rot.x +				// 前のキーフレーム位置
-					(g_anime[i + 1].key[j].rot.x - g_anime[i].key[j].rot.x)			// 前のキーフレームと次のキーフレームの差分
-					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-				g_player.part[j].srt.rot.y = g_anime[i].key[j].rot.y +				// 前のキーフレーム位置
-					(g_anime[i + 1].key[j].rot.y - g_anime[i].key[j].rot.y)			// 前のキーフレームと次のキーフレームの差分
-					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-				g_player.part[j].srt.rot.z = g_anime[i].key[j].rot.z +				// 前のキーフレーム位置
-					(g_anime[i + 1].key[j].rot.z - g_anime[i].key[j].rot.z)			// 前のキーフレームと次のキーフレームの差分
-					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-				// Position
-				g_player.part[j].srt.pos.x = g_anime[i].key[j].pos.x +				// 前のキーフレーム位置
-					(g_anime[i + 1].key[j].pos.x - g_anime[i].key[j].pos.x)			// 前のキーフレームと次のキーフレームの差分
-					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-				g_player.part[j].srt.pos.y = g_anime[i].key[j].pos.y +				// 前のキーフレーム位置
-					(g_anime[i + 1].key[j].pos.y - g_anime[i].key[j].pos.y)			// 前のキーフレームと次のキーフレームの差分
-					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-				g_player.part[j].srt.pos.z = g_anime[i].key[j].pos.z +				// 前のキーフレーム位置
-					(g_anime[i + 1].key[j].pos.z - g_anime[i].key[j].pos.z)			// 前のキーフレームと次のキーフレームの差分
-					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-			}
-		}
-
+		//AnimeKen(g_animeKen);
+		AnimeWalk(g_animeWalk);
 		break;
 	}
 
 	case MODE_EDIT:
+	{
+
+#ifdef _DEBUG
+
+		//モデルパーツのコントローラー（モーション作成ツール）
+		//回転
+		{
+			//x軸回転
+			if (GetKeyboardPress(DIK_Z))
+			{
+				g_player.part[g_conId].srt.rot.x += VALUE_ROTATE_PLAYER;
+				//if (g_player.part[g_conId].srt.rot.x > D3DX_PI)
+				//{
+				//	g_player.part[g_conId].srt.rot.x -= D3DX_PI * 2.0f;
+				//}
+			}
+			else if (GetKeyboardPress(DIK_X))
+			{
+				g_player.part[g_conId].srt.rot.x -= VALUE_ROTATE_PLAYER;
+				//if (g_player.part[g_conId].srt.rot.x < -D3DX_PI)
+				//{
+				//	g_player.part[g_conId].srt.rot.x += D3DX_PI * 2.0f;
+				//}
+			}
+
+			//y軸回転
+			if (GetKeyboardPress(DIK_C))
+			{
+				g_player.part[g_conId].srt.rot.y += VALUE_ROTATE_PLAYER;
+				if (g_player.part[g_conId].srt.rot.y > D3DX_PI)
+				{
+					g_player.part[g_conId].srt.rot.y -= D3DX_PI * 2.0f;
+				}
+			}
+			else if (GetKeyboardPress(DIK_V))
+			{
+				g_player.part[g_conId].srt.rot.y -= VALUE_ROTATE_PLAYER;
+				if (g_player.part[g_conId].srt.rot.y < -D3DX_PI)
+				{
+					g_player.part[g_conId].srt.rot.y += D3DX_PI * 2.0f;
+				}
+			}
+
+			//z軸回転
+			if (GetKeyboardPress(DIK_B))
+			{
+				g_player.part[g_conId].srt.rot.z += VALUE_ROTATE_PLAYER;
+				if (g_player.part[g_conId].srt.rot.z > D3DX_PI)
+				{
+					g_player.part[g_conId].srt.rot.z -= D3DX_PI * 2.0f;
+				}
+			}
+			else if (GetKeyboardPress(DIK_N))
+			{
+				g_player.part[g_conId].srt.rot.z -= VALUE_ROTATE_PLAYER;
+				if (g_player.part[g_conId].srt.rot.z < -D3DX_PI)
+				{
+					g_player.part[g_conId].srt.rot.z += D3DX_PI * 2.0f;
+				}
+			}
+
+		}
+
+		//移動
+		{
+			//x軸移動
+			if (GetKeyboardPress(DIK_A))
+			{
+				g_player.part[g_conId].srt.pos.x -= VALUE_MOVE_PLAYER;
+			}
+			else if (GetKeyboardPress(DIK_D))
+			{
+				g_player.part[g_conId].srt.pos.x += VALUE_MOVE_PLAYER;
+			}
+
+			//y軸移動
+			if (GetKeyboardPress(DIK_F))
+			{
+				g_player.part[g_conId].srt.pos.y -= VALUE_MOVE_PLAYER;
+			}
+			else if (GetKeyboardPress(DIK_G))
+			{
+				g_player.part[g_conId].srt.pos.y += VALUE_MOVE_PLAYER;
+			}
+
+			//z軸移動
+			if (GetKeyboardPress(DIK_S))
+			{
+				g_player.part[g_conId].srt.pos.z -= VALUE_MOVE_PLAYER;
+			}
+			else if (GetKeyboardPress(DIK_W))
+			{
+				g_player.part[g_conId].srt.pos.z += VALUE_MOVE_PLAYER;
+			}
+		}
+
+		//縮小拡大
+		{
+			if (GetKeyboardPress(DIK_J))
+			{
+				g_player.part[g_conId].srt.scl.x -= 0.1f;
+				g_player.part[g_conId].srt.scl.y -= 0.1f;
+				g_player.part[g_conId].srt.scl.z -= 0.1f;
+			}
+			else if (GetKeyboardPress(DIK_K))
+			{
+				g_player.part[g_conId].srt.scl.x += 0.1f;
+				g_player.part[g_conId].srt.scl.y += 0.1f;
+				g_player.part[g_conId].srt.scl.z += 0.1f;
+			}
+		}
+
+
+#endif		
+
+		break;
+	}
+
+	case MODE_INGAME:
 	{
 		D3DXVECTOR3 rotCamera;
 		float fDiffRotY;
@@ -540,172 +1369,98 @@ void UpdatePlayer(void)
 
 		g_animeState = 0;//運動状態をリセット
 
-		if((GetTimeOut() == 0) && (g_player.state != FROZEN))
-		{//移動
-			if (GetKeyboardPress(DIK_A) || IsButtonPress(0, BUTTON_LEFT) || IsButtonPress(0, BUTTON_LSTICK_LEFT))
-			{
-				g_animeState = 1;//動く状態にする
+		//移動
+		if (GetKeyboardPress(DIK_A) || IsButtonPress(0, BUTTON_LEFT) || IsButtonPress(0, BUTTON_LSTICK_LEFT))
+		{
+			g_animeState = 1;//動く状態にする
 
-				if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
-				{// 左前移動
-					g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
-					g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
+			if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
+			{// 左前移動
+				g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
+				g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
 
-					g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.75f;
-				}
-				else if (GetKeyboardPress(DIK_S) || IsButtonPress(0, BUTTON_DOWN) || IsButtonPress(0, BUTTON_LSTICK_DOWN))
-				{// 左後移動
-					g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
-					g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
-
-					g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.25f;
-				}
-				else
-				{// 左移動
-					g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
-					g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
-
-					g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.50f;
-				}
-			}
-			else if (GetKeyboardPress(DIK_D) || IsButtonPress(0, BUTTON_RIGHT) || IsButtonPress(0, BUTTON_LSTICK_RIGHT))
-			{
-				g_animeState = 1;//動く状態にする
-
-				if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
-				{// 右前移動
-					g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
-					g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
-
-					g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.75f;
-				}
-				else if (GetKeyboardPress(DIK_S) || IsButtonPress(0, BUTTON_DOWN) || IsButtonPress(0, BUTTON_LSTICK_DOWN))
-				{// 右後移動
-					g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
-					g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
-
-					g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.25f;
-				}
-				else
-				{// 右移動
-					g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
-					g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
-
-					g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.50f;
-				}
-			}
-			else if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
-			{
-				g_animeState = 1;//動く状態にする
-
-				// 前移動
-				g_player.move.x -= sinf(D3DX_PI + rotCamera.y) * VALUE_MOVE_PLAYER;
-				g_player.move.z -= cosf(D3DX_PI + rotCamera.y) * VALUE_MOVE_PLAYER;
-
-				g_player.rotDest.y = D3DX_PI + rotCamera.y;
+				g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.75f;
 			}
 			else if (GetKeyboardPress(DIK_S) || IsButtonPress(0, BUTTON_DOWN) || IsButtonPress(0, BUTTON_LSTICK_DOWN))
-			{
-				g_animeState = 1;//動く状態にする
+			{// 左後移動
+				g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
+				g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
 
-				// 後移動
-				g_player.move.x -= sinf(rotCamera.y) * VALUE_MOVE_PLAYER;
-				g_player.move.z -= cosf(rotCamera.y) * VALUE_MOVE_PLAYER;
+				g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.25f;
+			}
+			else
+			{// 左移動
+				g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
+				g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
 
-				g_player.rotDest.y = rotCamera.y;
+				g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.50f;
 			}
+		}
+		else if (GetKeyboardPress(DIK_D) || IsButtonPress(0, BUTTON_RIGHT) || IsButtonPress(0, BUTTON_LSTICK_RIGHT))
+		{
+			g_animeState = 1;//動く状態にする
 
-#ifdef _DEBUG
-			if (GetKeyboardPress(DIK_T))
-			{// 上昇
-				g_player.move.y += VALUE_MOVE_PLAYER;
-			}
-			if (GetKeyboardPress(DIK_Y))
-			{// 下降
-				g_player.move.y -= VALUE_MOVE_PLAYER;
-			}
+			if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
+			{// 右前移動
+				g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
+				g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
 
-			if (GetKeyboardPress(DIK_U))
-			{// 左回転
-				g_player.rotDest.y -= VALUE_ROTATE_PLAYER;
-				if (g_player.rotDest.y < -D3DX_PI)
-				{
-					g_player.rotDest.y += D3DX_PI * 2.0f;
-				}
+				g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.75f;
 			}
-			if (GetKeyboardPress(DIK_I))
-			{// 右回転
-				g_player.rotDest.y += VALUE_ROTATE_PLAYER;
-				if (g_player.rotDest.y > D3DX_PI)
-				{
-					g_player.rotDest.y -= D3DX_PI * 2.0f;
-				}
+			else if (GetKeyboardPress(DIK_S) || IsButtonPress(0, BUTTON_DOWN) || IsButtonPress(0, BUTTON_LSTICK_DOWN))
+			{// 右後移動
+				g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
+				g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
+
+				g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.25f;
 			}
-#endif
+			else
+			{// 右移動
+				g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
+				g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
+
+				g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.50f;
+			}
+		}
+		else if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
+		{
+			g_animeState = 1;//動く状態にする
+
+			// 前移動
+			g_player.move.x -= sinf(D3DX_PI + rotCamera.y) * VALUE_MOVE_PLAYER;
+			g_player.move.z -= cosf(D3DX_PI + rotCamera.y) * VALUE_MOVE_PLAYER;
+
+			g_player.rotDest.y = D3DX_PI + rotCamera.y;
+		}
+		else if (GetKeyboardPress(DIK_S) || IsButtonPress(0, BUTTON_DOWN) || IsButtonPress(0, BUTTON_LSTICK_DOWN))
+		{
+			g_animeState = 1;//動く状態にする
+
+			// 後移動
+			g_player.move.x -= sinf(rotCamera.y) * VALUE_MOVE_PLAYER;
+			g_player.move.z -= cosf(rotCamera.y) * VALUE_MOVE_PLAYER;
+
+			g_player.rotDest.y = rotCamera.y;
 		}
 
-#ifdef _DEBUG
-		//パーツの変形
-		//x軸回転
-		if (GetKeyboardPress(DIK_Z))
-			{
-				g_player.part[g_conId].srt.rot.x += VALUE_ROTATE_PLAYER;
-				if (g_player.part[g_conId].srt.rot.x > D3DX_PI)
-				{
-					g_player.part[g_conId].srt.rot.x -= D3DX_PI * 2.0f;
-				}
+		if ((g_animeStateKen3 == 0) && (g_animeStateKen4 == 0))
+		{
+			AnimeWalk(g_animeWalk);
+		}
 
-			}
-		else if (GetKeyboardPress(DIK_X))
-			{
-				g_player.part[g_conId].srt.rot.x -= VALUE_ROTATE_PLAYER;
-				if (g_player.part[g_conId].srt.rot.x < -D3DX_PI)
-				{
-					g_player.part[g_conId].srt.rot.x += D3DX_PI * 2.0f;
-				}
-			}
+		if (g_animeStateKen4 == 0)
+		{
+			AnimeKen3(g_animeKen3);
+		}
+		
+		if (g_animeStateKen3 == 0)
+		{
+			AnimeKen4(g_animeKen4);
+		}
 
-		//y軸回転
-		if (GetKeyboardPress(DIK_C))
-			{
-				g_player.part[g_conId].srt.rot.y += VALUE_ROTATE_PLAYER;
-				if (g_player.part[g_conId].srt.rot.y > D3DX_PI)
-				{
-					g_player.part[g_conId].srt.rot.y -= D3DX_PI * 2.0f;
-				}
+		
 
-			}
-		else if (GetKeyboardPress(DIK_V))
-			{
-				g_player.part[g_conId].srt.rot.y -= VALUE_ROTATE_PLAYER;
-				if (g_player.part[g_conId].srt.rot.y < -D3DX_PI)
-				{
-					g_player.part[g_conId].srt.rot.y += D3DX_PI * 2.0f;
-				}
-			}
-
-		//z軸回転
-		if (GetKeyboardPress(DIK_B))
-			{
-				g_player.part[g_conId].srt.rot.z += VALUE_ROTATE_PLAYER;
-				if (g_player.part[g_conId].srt.rot.z > D3DX_PI)
-				{
-					g_player.part[g_conId].srt.rot.z -= D3DX_PI * 2.0f;
-				}
-
-			}
-		else if (GetKeyboardPress(DIK_N))
-			{
-				g_player.part[g_conId].srt.rot.z -= VALUE_ROTATE_PLAYER;
-				if (g_player.part[g_conId].srt.rot.z < -D3DX_PI)
-				{
-					g_player.part[g_conId].srt.rot.z += D3DX_PI * 2.0f;
-				}
-			}
-#endif
-
-		AnimeWalk();
-
+		AnimeKen(g_animeKen);
 
 		// 目的の角度までの差分
 		fDiffRotY = g_player.rotDest.y - g_player.part[0].srt.rot.y;//体を基準に
@@ -729,7 +1484,7 @@ void UpdatePlayer(void)
 			g_player.part[0].srt.rot.y += D3DX_PI * 2.0f;
 		}
 
-		/// 位置移動を反映
+		// 位置移動を反映
 		g_player.part[0].srt.pos.x += g_player.move.x;//体に反映
 		g_player.part[0].srt.pos.y += g_player.move.y;
 		g_player.part[0].srt.pos.z += g_player.move.z;
@@ -771,155 +1526,11 @@ void UpdatePlayer(void)
 		break;
 	}
 
+
+
 	}//switch end
 
-// 弾発射
-#ifdef _DEBUG
-	if (0)
-	{
-		if ((GetTimeOut() == 0) && (g_player.state != FROZEN))
-		{
-			if (GetKeyboardTrigger(DIK_SPACE))
-			{
-				D3DXVECTOR3 pos;
-				D3DXVECTOR3 move;
 
-				//体を基準に
-				pos.x = g_player.part[0].srt.pos.x - sinf(g_player.part[0].srt.rot.y) * g_player.fRadius;//飛行機頭部の辺りに設定
-				pos.y = g_player.part[0].srt.pos.y;
-				pos.z = g_player.part[0].srt.pos.z - cosf(g_player.part[0].srt.rot.y) * g_player.fRadius;
-
-				//回転角度がプラスの時、時計回り
-				//sinf、cosfの符号がちょうど移動量の符号と相反する、だから-sinf、-cosf
-				move.x = -sinf(g_player.part[0].srt.rot.y) * VALUE_MOVE_BULLET;//体を基準に
-				move.y = 0.0f;
-				move.z = -cosf(g_player.part[0].srt.rot.y) * VALUE_MOVE_BULLET;
-
-				SetBullet(pos, move, 4.0f, 4.0f, 60 * 4);
-
-				// SE再生
-				PlaySound(SOUND_LABEL_SE_SHOT);
-			}
-		}
-	}
-#endif
-
-	// 影の位置設定
-	{//体を基準に
-		SetPositionShadow(g_player.nIdxShadow, D3DXVECTOR3(g_player.part[0].srt.pos.x, 0.1f, g_player.part[0].srt.pos.z));
-		//高さにより、影のサイズが変化する
-		float fSizeX = 20.0f + (g_player.part[0].srt.pos.y - 10.0f) * 0.05f;
-		if(fSizeX < 20.0f)
-		{
-			fSizeX = 20.0f;
-		}
-		float fSizeY = 20.0f + (g_player.part[0].srt.pos.y - 10.0f) * 0.05f;
-		if(fSizeY < 20.0f)
-		{
-			fSizeY = 20.0f;
-		}
-
-		SetVertexShadow(g_player.nIdxShadow, fSizeX, fSizeY);
-		//高さにより、影の透明度が変化する
-		float colA = (200.0f - (g_player.part[0].srt.pos.y - 10.0f)) / 400.0f;
-		if(colA < 0.0f)
-		{
-			colA = 0.0f;
-		}
-		SetColorShadow(g_player.nIdxShadow, D3DXCOLOR(1.0f, 1.0f, 1.0f, colA));
-	}
-
-	//移動距離が1より大きい場合、ジェットの煙ある
-	if((g_player.move.x * g_player.move.x
-	+ g_player.move.y * g_player.move.y
-	+ g_player.move.z * g_player.move.z) > 1.0f)
-	{
-		D3DXVECTOR3 pos;
-		//体を基準に
-		pos.x = g_player.part[0].srt.pos.x + sinf(g_player.part[0].srt.rot.y) * g_player.fRadius;//飛行機尾部の辺りに設定
-		pos.y = g_player.part[0].srt.pos.y + 2.0f;
-		pos.z = g_player.part[0].srt.pos.z + cosf(g_player.part[0].srt.rot.y) * g_player.fRadius;
-
-		// エフェクトの設定
-		SetEffect(pos, D3DXVECTOR3(0.0f, 0.0f, 0.0f),
-							D3DXCOLOR(0.85f, 0.15f, 0.0f, 0.50f), 14.0f, 14.0f, 20);//オレンジ
-		SetEffect(pos, D3DXVECTOR3(0.0f, 0.0f, 0.0f),
-							D3DXCOLOR(0.15f, 0.75f, 0.0f, 0.30f), 10.0f, 10.0f, 20);//緑
-		SetEffect(pos, D3DXVECTOR3(0.0f, 0.0f, 0.0f),
-							D3DXCOLOR(0.0f, 0.10f, 0.0f, 0.15f), 5.0f, 5.0f, 20);//緑
-	}
-
-	// アイテムとの当たり判定
-	{
-		ITEM *pItem;
-
-		// アイテムを取得
-		pItem = GetItem();
-
-		for(int nCntItem = 0; nCntItem < MAX_ITEM; nCntItem++, pItem++)
-		{
-			if(pItem->bUse == true)
-			{
-				float fLength;
-
-				//バウンディングサークル BC //体を基準に
-				fLength = (g_player.part[0].srt.pos.x - pItem->pos.x) * (g_player.part[0].srt.pos.x - pItem->pos.x)
-							+ (g_player.part[0].srt.pos.y - pItem->pos.y) * (g_player.part[0].srt.pos.y - pItem->pos.y)
-							+ (g_player.part[0].srt.pos.z - pItem->pos.z) * (g_player.part[0].srt.pos.z - pItem->pos.z);
-				if(fLength < (g_player.fRadius + pItem->fRadius) * (g_player.fRadius + pItem->fRadius))
-				{
-					if (g_player.holdItem && (pItem->nType != ITEMTYPE_COIN))
-					{//アイテム持っている場合、ほかのアイテムを拾えない
-
-					}
-					else
-					{
-						if (pItem->nType == ITEMTYPE_ICEBLOCK)
-						{
-							g_player.holdItem = ITEMTYPE_ICEBLOCK;
-						}
-						else if(pItem->nType == ITEMTYPE_COIN)
-						{
-							// スコア加算
-							ChangeScore2(100);
-
-							// SE再生
-							PlaySound(SOUND_LABEL_SE_COIN);
-						}
-
-						// アイテム消去
-						DeleteItem(nCntItem);
-				
-					}
-				}
-			}
-		}
-	}
-
-
-	if ((GetTimeOut() == 0) && (g_player.state != FROZEN))
-	{
-		if (GetKeyboardTrigger(DIK_SPACE) || IsButtonTrigger(0, BUTTON_CIRCLE))
-		{//凍結アイテムを使う
-			Freeze(OBJECT_ENEMY);
-		}
-	}
-
-	//凍結状態
-	if (g_player.state == FROZEN)
-	{
-		if (g_player.stateTime == 0)
-		{
-			g_player.state = NORMAL;
-			g_player.part[6].use = false;
-		}
-		else
-		{
-			g_player.stateTime--;
-			g_player.part[6].use = true;
-
-		}
-	}
 
 //運動情報を書き出す
 #ifdef _DEBUG
@@ -928,6 +1539,8 @@ void UpdatePlayer(void)
 		WriteAnime();
 	}
 #endif
+
+	PrintDebugProc("編輯モード：%d \n\n", g_mode);
 
 	PrintDebugProc("コントロールのパーツ番号：%d \n\n", g_conId);
 
@@ -944,6 +1557,7 @@ void UpdatePlayer(void)
 											g_player.part[g_conId].srt.pos.z);
 
 	PrintDebugProc("目的向き：%f \n\n", g_player.rotDest.y);
+	PrintDebugProc("プレイヤーの運動量：%f,%f,%f \n\n", g_player.move.x, g_player.move.y, g_player.move.z);
 
 }
 
@@ -971,12 +1585,16 @@ void DrawPlayer(void)
 				g_player.part[i].srt.scl.y,
 				g_player.part[i].srt.scl.z);
 			D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxScl);
-
+			
+			g_player.part[i].mtxS = mtxScl;
+		
 			// 回転を反映
 			D3DXMatrixRotationYawPitchRoll(&mtxRot, g_player.part[i].srt.rot.y,
 				g_player.part[i].srt.rot.x,
 				g_player.part[i].srt.rot.z);
 			D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxRot);
+
+			g_player.part[i].mtxR = mtxRot;
 
 			// 移動を反映
 			D3DXMatrixTranslation(&mtxTranslate, g_player.part[i].srt.pos.x,
@@ -984,11 +1602,28 @@ void DrawPlayer(void)
 				g_player.part[i].srt.pos.z);
 			D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxTranslate);
 
+			g_player.part[i].mtxT = mtxTranslate;
+			
+
 			//親が存在する場合は親のワールドマトリクスを合成
 			if (g_player.part[i].parent)
 			{
-				D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &g_player.part[i].parent->mtxWorld);
+				if ((i == SWORD_R)&&(g_animeStateKen))
+				{
+					D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &mtxBuff);
+					
+				}
+				else
+				{
+					D3DXMatrixMultiply(&mtxWorld, &mtxWorld, &g_player.part[i].parent->mtxWorld);
+				}
+
+
 			}
+
+
+
+			g_player.part[i].mtxWorld = mtxWorld;//ワールドマトリクスを保存
 
 			// ワールドマトリックスの設定
 			pDevice->SetTransform(D3DTS_WORLD, &mtxWorld);
@@ -996,18 +1631,23 @@ void DrawPlayer(void)
 			// マテリアル情報に対するポインタを取得
 			pD3DXMat = (D3DXMATERIAL*)g_player.part[i].pMatBuff->GetBufferPointer();
 
+			// テクスチャの設定
+			pDevice->SetTexture(0, g_pD3DTexturePlayer);
+
+			if (i == SWORD_R)
+			{
+				pDevice->SetTexture(0, g_pD3DTextureSword);
+			}
+
 			for (int nCntMat = 0; nCntMat < (int)g_player.part[i].nNumMat; nCntMat++)
 			{
 				// マテリアルの設定
 				pDevice->SetMaterial(&pD3DXMat[nCntMat].MatD3D);
 
-				// テクスチャの設定
-				pDevice->SetTexture(0, g_pD3DTexturePlayer);
-
 				// 描画
 				g_player.part[i].pMesh->DrawSubset(nCntMat);
 			}
-			g_player.part[i].mtxWorld = mtxWorld;//ワールドマトリクスを保存
+			
 		}
 	}
 	pDevice->SetMaterial(&matDef);// マテリアルをデフォルトに戻す
@@ -1057,7 +1697,7 @@ D3DXVECTOR3 GetMovePlayer(void)
 void WriteAnime()
 {
 	FILE *fp;
-	fp = fopen("anime.txt", "a+");//"a+"は書き込みのモード。ファイルがないと、自動に作成
+	fp = fopen("animeKen5.txt", "a+");//"a+"は書き込みのモード。ファイルがないと、自動に作成
 	if (fp == NULL)
 	{
 		return;
@@ -1094,143 +1734,526 @@ void WriteAnime()
 }
 
 
-void AnimeWalk()
+void AnimeWalk(KEY g_anime[])
 {
+	g_keyMax = sizeof(g_animeWalk) / sizeof(KEY);//sizeof(g_anime)ではダメ
 
-	//アニメーション 
-	int i = (int)g_motionTime;  //現在のキーフレームナンバー
-
-	//loopできるように
-	if (i > g_keyMax - 2)//最大キーフレームナンバーを超えたら
+	switch (g_mode)
 	{
-		i = 1;
-		g_motionTime = 1.0f;
-	}
-
-	float dt = 1.0f / g_anime[i].frame;//補間の間隔時間
-
-	g_motionTime += dt;
-
-	if (g_motionTime > g_keyMax - 1.0f)//最大時間を超えたら
+	case MODE_PLAY:
 	{
-		g_motionTime = g_keyMax - 1.0f;//最大時間にする
-	}
+		//アニメーション 
+		int i = (int)g_motionTime;  //現在のキーフレームナンバー
 
-	if (g_motionTime - i > 1.0f) //誤差を修正　想定の1.0を超えたら
-	{
-		i++;//次のキーフレームに入る
-	}
+		//if (i > g_keyMax - 2)//最大キーフレームナンバーを超えたら
+		//{
+		//	i = g_keyMax - 2;//最大キーフレームナンバーにする
+		//}
 
-	if (g_animeState == 0)
-	{
-		g_motionTime = 0.0f;	//リセット
-		i = (int)g_motionTime;	//重要
-
-		if (g_player.state != FROZEN)
+		//loopできるように
+		if (i > g_keyMax - 2)//最大キーフレームナンバーを超えたら
 		{
-			g_cancelTime += dt;//0番キーフレームのtimeを使う
+			i = 1;
+			g_motionTime = 1.0f;
 		}
 
-		if (g_cancelTime > 1.0f)//最大時間を超えたら
+		float dt = 1.0f / g_anime[i].frame;//補間の間隔時間
+
+		g_motionTime += dt;
+
+		if (g_motionTime > g_keyMax - 1.0f)//最大時間を超えたら
 		{
-			g_cancelTime = 1.0f;//最大最大時間にする
+			g_motionTime = g_keyMax - 1.0f;//最大最大時間にする
 		}
+
+		if (g_motionTime - i > 1.0f) //誤差を修正　想定の1.0を超えたら
+		{
+			i++;//次のキーフレームに入る
+		}
+
+		//if (GetKeyboardPress(DIK_SPACE))
+		//{
+		//	g_motionTime = 0.0f;	//リセット
+		//	i = (int)g_motionTime;	//重要
+		//}
+
+		if (1)
+		{
+			//接続の補間は　[i] * 1.0です、[i + 1] * 0.0ではない
+			for (int j = 0; j < PART_MAX; j++)//パーツ番号
+			{
+				// Scale
+				//g_player.part[j].srt.scl.x = g_anime[i].key[j].scl.x +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].scl.x - g_anime[i].key[j].scl.x)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+				//g_player.part[j].srt.scl.y = g_anime[i].key[j].scl.y +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].scl.y - g_anime[i].key[j].scl.y)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+				//g_player.part[j].srt.scl.z = g_anime[i].key[j].scl.z +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].scl.z - g_anime[i].key[j].scl.z)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+				// Rotation
+				g_player.part[j].srt.rot.x = g_anime[i].key[j].rot.x +				// 前のキーフレーム位置
+					(g_anime[i + 1].key[j].rot.x - g_anime[i].key[j].rot.x)			// 前のキーフレームと次のキーフレームの差分
+					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+				g_player.part[j].srt.rot.y = g_anime[i].key[j].rot.y +				// 前のキーフレーム位置
+					(g_anime[i + 1].key[j].rot.y - g_anime[i].key[j].rot.y)			// 前のキーフレームと次のキーフレームの差分
+					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+				g_player.part[j].srt.rot.z = g_anime[i].key[j].rot.z +				// 前のキーフレーム位置
+					(g_anime[i + 1].key[j].rot.z - g_anime[i].key[j].rot.z)			// 前のキーフレームと次のキーフレームの差分
+					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+				// Position
+				//g_player.part[j].srt.pos.x = g_anime[i].key[j].pos.x +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].pos.x - g_anime[i].key[j].pos.x)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+				//g_player.part[j].srt.pos.y = g_anime[i].key[j].pos.y +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].pos.y - g_anime[i].key[j].pos.y)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+				//g_player.part[j].srt.pos.z = g_anime[i].key[j].pos.z +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].pos.z - g_anime[i].key[j].pos.z)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+			}
+		}
+
+		break;
+	}
+
+	case MODE_INGAME:
+	{
+		//アニメーション 
+		int i = (int)g_motionTime;  //現在のキーフレームナンバー
+
+		//loopできるように
+		if (i > g_keyMax - 2)//最大キーフレームナンバーを超えたら
+		{
+			i = 1;
+			g_motionTime = 1.0f;
+		}
+
+		float dt = 1.0f / g_anime[i].frame;//補間の間隔時間
+
+		g_motionTime += dt;
+
+		if (g_motionTime > g_keyMax - 1.0f)//最大時間を超えたら
+		{
+			g_motionTime = g_keyMax - 1.0f;//最大時間にする
+		}
+
+		if (g_motionTime - i > 1.0f) //誤差を修正　想定の1.0を超えたら
+		{
+			i++;//次のキーフレームに入る
+		}
+
+		if (g_animeState == 0)
+		{
+			g_motionTime = 0.0f;	//リセット
+			i = (int)g_motionTime;	//重要
+
+			if (g_player.state != FROZEN)
+			{
+				g_cancelTime += dt;//0番キーフレームのtimeを使う
+			}
+
+			if (g_cancelTime > 1.0f)//最大時間を超えたら
+			{
+				g_cancelTime = 1.0f;//最大最大時間にする
+			}
+
+			//接続の補間は　[i] * 1.0です、[i + 1] * 0.0ではない
+			for (int j = 0; j < PART_MAX; j++)//パーツ番号
+			{//最初のキーの状態に戻る
+				// Scale
+				//g_player.part[j].srt.scl.x = g_player.part[j].srt.scl.x +	
+				//	(g_anime[0].key[j].scl.x - g_player.part[j].srt.scl.x)	
+				//	* g_cancelTime;											
+
+				//g_player.part[j].srt.scl.y = g_player.part[j].srt.scl.y +	
+				//	(g_anime[0].key[j].scl.y - g_player.part[j].srt.scl.y)	
+				//	* g_cancelTime;											
+
+				//g_player.part[j].srt.scl.z = g_player.part[j].srt.scl.z +	
+				//	(g_anime[0].key[j].scl.z - g_player.part[j].srt.scl.z)	
+				//	* g_cancelTime;											
+
+				// Rotation
+				g_player.part[j].srt.rot.x = g_player.part[j].srt.rot.x +
+					(g_anime[0].key[j].rot.x - g_player.part[j].srt.rot.x)
+					* g_cancelTime;
+
+				//g_player.part[j].srt.rot.y = g_player.part[j].srt.rot.y +	
+				//	(g_anime[0].key[j].rot.y - g_player.part[j].srt.rot.y)	
+				//	* g_cancelTime;											
+
+				g_player.part[j].srt.rot.z = g_player.part[j].srt.rot.z +
+					(g_anime[0].key[j].rot.z - g_player.part[j].srt.rot.z)
+					* g_cancelTime;
+
+				// Position
+				//g_player.part[j].srt.pos.x = g_player.part[j].srt.pos.x +	
+				//	(g_anime[0].key[j].pos.x - g_player.part[j].srt.pos.x)	
+				//	* g_cancelTime;											
+
+				//g_player.part[j].srt.pos.y = g_player.part[j].srt.pos.y +	
+				//	(g_anime[0].key[j].pos.y - g_player.part[j].srt.pos.y)	
+				//	* g_cancelTime;											
+
+				//g_player.part[j].srt.pos.z = g_player.part[j].srt.pos.z +	
+				//	(g_anime[0].key[j].pos.z - g_player.part[j].srt.pos.z)	
+				//	* g_cancelTime;											
+			}
+
+		}
+		else
+		{
+			g_cancelTime = 0.0f;	//リセット
+
+			//接続の補間は　[i] * 1.0です、[i + 1] * 0.0ではない
+			for (int j = 0; j < PART_MAX; j++)//パーツ番号
+			{
+				// Scale
+				//g_player.part[j].srt.scl.x = g_anime[i].key[j].scl.x +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].scl.x - g_anime[i].key[j].scl.x)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+				//g_player.part[j].srt.scl.y = g_anime[i].key[j].scl.y +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].scl.y - g_anime[i].key[j].scl.y)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+				//g_player.part[j].srt.scl.z = g_anime[i].key[j].scl.z +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].scl.z - g_anime[i].key[j].scl.z)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+				// Rotation
+				g_player.part[j].srt.rot.x = g_anime[i].key[j].rot.x +				// 前のキーフレーム位置
+					(g_anime[i + 1].key[j].rot.x - g_anime[i].key[j].rot.x)			// 前のキーフレームと次のキーフレームの差分
+					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+				//g_player.part[j].srt.rot.y = g_anime[i].key[j].rot.y +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].rot.y - g_anime[i].key[j].rot.y)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+				g_player.part[j].srt.rot.z = g_anime[i].key[j].rot.z +				// 前のキーフレーム位置
+					(g_anime[i + 1].key[j].rot.z - g_anime[i].key[j].rot.z)			// 前のキーフレームと次のキーフレームの差分
+					* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+				// Position
+				//g_player.part[j].srt.pos.x = g_anime[i].key[j].pos.x +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].pos.x - g_anime[i].key[j].pos.x)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+				//g_player.part[j].srt.pos.y = g_anime[i].key[j].pos.y +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].pos.y - g_anime[i].key[j].pos.y)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+				//g_player.part[j].srt.pos.z = g_anime[i].key[j].pos.z +				// 前のキーフレーム位置
+				//	(g_anime[i + 1].key[j].pos.z - g_anime[i].key[j].pos.z)			// 前のキーフレームと次のキーフレームの差分
+				//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
+			}
+
+		}
+
+		break;
+	}
+
+	}//end switch
+
+
+}
+
+void AnimeKen(KEY g_anime[])
+{
+	if (g_animeStateKen == 0)
+	{
+		if (GetKeyboardPress(DIK_J))
+		{
+			g_animeStateKen = 1;//動く状態にする	
+			
+			D3DXMatrixIdentity(&mtxBuff);
+			D3DXMatrixMultiply(&mtxBuff, &mtxBuff, &g_player.part[SWORD_R].parent->mtxT);
+			D3DXMatrixMultiply(&mtxBuff, &mtxBuff, &g_player.part[SWORD_R].parent->parent->mtxWorld);//剣を投げる時の、親の行列情報を保存
+		}
+
+	}
+
+	if (g_animeStateKen)
+	{
+		g_keyMax = sizeof(g_animeKen) / sizeof(KEY);//sizeof(g_anime)ではダメ
+
+		//アニメーション 
+		int i = (int)g_motionTime2;  //i:現在のキーフレームナンバー
+
+		float dt = 1.0f / g_anime[i].frame;//補間の間隔時間
+
+		//完成したら、元の状態に戻る
+		if (i > g_keyMax - 2)//最大キーフレームナンバーを超えたら
+		{
+			i = 0;
+			g_motionTime2 = 0.0f;
+
+			g_animeStateKen = 0;
+			dt = 0;
+		}
+
+		g_motionTime2 += dt;
+
+		if (g_motionTime2 > g_keyMax - 1.0f)//最大時間を超えたら
+		{
+			g_motionTime2 = g_keyMax - 1.0f;//最大最大時間にする
+
+		}
+
+		if (g_motionTime2 - i > 1.0f) //誤差を修正　想定の1.0を超えたら
+		{
+			i++;//次のキーフレームに入る
+		}
+
+
+
 
 		//接続の補間は　[i] * 1.0です、[i + 1] * 0.0ではない
-		for (int j = 0; j < 6; j++)//パーツ番号
-		{//最初のキーの状態に戻る
-			// Scale
-			g_player.part[j].srt.scl.x = g_player.part[j].srt.scl.x +	
-				(g_anime[0].key[j].scl.x - g_player.part[j].srt.scl.x)	
-				* g_cancelTime;											
 
-			g_player.part[j].srt.scl.y = g_player.part[j].srt.scl.y +	
-				(g_anime[0].key[j].scl.y - g_player.part[j].srt.scl.y)	
-				* g_cancelTime;											
+		int j = SWORD_R;
 
-			g_player.part[j].srt.scl.z = g_player.part[j].srt.scl.z +	
-				(g_anime[0].key[j].scl.z - g_player.part[j].srt.scl.z)	
-				* g_cancelTime;											
+		// Rotation
+		g_player.part[j].srt.rot.x = g_anime[i].key[j].rot.x +				// 前のキーフレーム位置
+			(g_anime[i + 1].key[j].rot.x - g_anime[i].key[j].rot.x)			// 前のキーフレームと次のキーフレームの差分
+			* (g_motionTime2 - i);											// に　全体アニメ時間の小数点以下の割合をかける
 
-			// Rotation
-			g_player.part[j].srt.rot.x = g_player.part[j].srt.rot.x +	
-				(g_anime[0].key[j].rot.x - g_player.part[j].srt.rot.x)	
-				* g_cancelTime;											
+		g_player.part[j].srt.rot.y = g_anime[i].key[j].rot.y +				// 前のキーフレーム位置
+			(g_anime[i + 1].key[j].rot.y - g_anime[i].key[j].rot.y)			// 前のキーフレームと次のキーフレームの差分
+			* (g_motionTime2 - i);											// に　全体アニメ時間の小数点以下の割合をかける
 
-			//g_player.part[j].srt.rot.y = g_player.part[j].srt.rot.y +	
-			//	(g_anime[0].key[j].rot.y - g_player.part[j].srt.rot.y)	
-			//	* g_cancelTime;											
+		g_player.part[j].srt.rot.z = g_anime[i].key[j].rot.z +				// 前のキーフレーム位置
+			(g_anime[i + 1].key[j].rot.z - g_anime[i].key[j].rot.z)			// 前のキーフレームと次のキーフレームの差分
+			* (g_motionTime2 - i);											// に　全体アニメ時間の小数点以下の割合をかける
 
-			g_player.part[j].srt.rot.z = g_player.part[j].srt.rot.z +	
-				(g_anime[0].key[j].rot.z - g_player.part[j].srt.rot.z)	
-				* g_cancelTime;											
 
-			// Position
-			//g_player.part[j].srt.pos.x = g_player.part[j].srt.pos.x +	
-			//	(g_anime[0].key[j].pos.x - g_player.part[j].srt.pos.x)	
-			//	* g_cancelTime;											
+		// Position
+		g_player.part[j].srt.pos.x = g_anime[i].key[j].pos.x +				// 前のキーフレーム位置
+			(g_anime[i + 1].key[j].pos.x - g_anime[i].key[j].pos.x)			// 前のキーフレームと次のキーフレームの差分
+			* (g_motionTime2 - i);											// に　全体アニメ時間の小数点以下の割合をかける
 
-			//g_player.part[j].srt.pos.y = g_player.part[j].srt.pos.y +	
-			//	(g_anime[0].key[j].pos.y - g_player.part[j].srt.pos.y)	
-			//	* g_cancelTime;											
+		g_player.part[j].srt.pos.y = g_anime[i].key[j].pos.y +				// 前のキーフレーム位置
+			(g_anime[i + 1].key[j].pos.y - g_anime[i].key[j].pos.y)			// 前のキーフレームと次のキーフレームの差分
+			* (g_motionTime2 - i);											// に　全体アニメ時間の小数点以下の割合をかける
 
-			//g_player.part[j].srt.pos.z = g_player.part[j].srt.pos.z +	
-			//	(g_anime[0].key[j].pos.z - g_player.part[j].srt.pos.z)	
-			//	* g_cancelTime;											
-		}
+		g_player.part[j].srt.pos.z = g_anime[i].key[j].pos.z +				// 前のキーフレーム位置
+			(g_anime[i + 1].key[j].pos.z - g_anime[i].key[j].pos.z)			// 前のキーフレームと次のキーフレームの差分
+			* (g_motionTime2 - i);											// に　全体アニメ時間の小数点以下の割合をかける
 
-	}
-	else
-	{
-		g_cancelTime = 0.0f;	//リセット
-
-		//接続の補間は　[i] * 1.0です、[i + 1] * 0.0ではない
-		for (int j = 0; j < 6; j++)//パーツ番号
-		{
-			// Scale
-			g_player.part[j].srt.scl.x = g_anime[i].key[j].scl.x +				// 前のキーフレーム位置
-				(g_anime[i + 1].key[j].scl.x - g_anime[i].key[j].scl.x)			// 前のキーフレームと次のキーフレームの差分
-				* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-			g_player.part[j].srt.scl.y = g_anime[i].key[j].scl.y +				// 前のキーフレーム位置
-				(g_anime[i + 1].key[j].scl.y - g_anime[i].key[j].scl.y)			// 前のキーフレームと次のキーフレームの差分
-				* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-			g_player.part[j].srt.scl.z = g_anime[i].key[j].scl.z +				// 前のキーフレーム位置
-				(g_anime[i + 1].key[j].scl.z - g_anime[i].key[j].scl.z)			// 前のキーフレームと次のキーフレームの差分
-				* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-			// Rotation
-			g_player.part[j].srt.rot.x = g_anime[i].key[j].rot.x +				// 前のキーフレーム位置
-				(g_anime[i + 1].key[j].rot.x - g_anime[i].key[j].rot.x)			// 前のキーフレームと次のキーフレームの差分
-				* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-			//g_player.part[j].srt.rot.y = g_anime[i].key[j].rot.y +				// 前のキーフレーム位置
-			//	(g_anime[i + 1].key[j].rot.y - g_anime[i].key[j].rot.y)			// 前のキーフレームと次のキーフレームの差分
-			//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-			g_player.part[j].srt.rot.z = g_anime[i].key[j].rot.z +				// 前のキーフレーム位置
-				(g_anime[i + 1].key[j].rot.z - g_anime[i].key[j].rot.z)			// 前のキーフレームと次のキーフレームの差分
-				* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-			// Position
-			//g_player.part[j].srt.pos.x = g_anime[i].key[j].pos.x +				// 前のキーフレーム位置
-			//	(g_anime[i + 1].key[j].pos.x - g_anime[i].key[j].pos.x)			// 前のキーフレームと次のキーフレームの差分
-			//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-			//g_player.part[j].srt.pos.y = g_anime[i].key[j].pos.y +				// 前のキーフレーム位置
-			//	(g_anime[i + 1].key[j].pos.y - g_anime[i].key[j].pos.y)			// 前のキーフレームと次のキーフレームの差分
-			//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-			//g_player.part[j].srt.pos.z = g_anime[i].key[j].pos.z +				// 前のキーフレーム位置
-			//	(g_anime[i + 1].key[j].pos.z - g_anime[i].key[j].pos.z)			// 前のキーフレームと次のキーフレームの差分
-			//	* (g_motionTime - i);											// に　全体アニメ時間の小数点以下の割合をかける
-		}
 
 	}
 
 }
 
+
+void AnimeKen3(KEY g_anime[])
+{
+	if (g_animeStateKen3 == 0)
+	{
+		if (GetKeyboardPress(DIK_K))
+		{
+			g_animeStateKen3 = 1;//動く状態にする	
+			g_motionTime3 = 0.0f;
+	
+			vctBuff3 = D3DXVECTOR3( g_player.part[0].srt.pos.x,
+									0.0f,
+									g_player.part[0].srt.pos.z);
+
+			rotY = g_player.part[0].srt.rot.y;
+
+
+		}
+
+	}
+
+	if (g_animeStateKen3)
+	{
+		g_keyMax = sizeof(g_animeKen3) / sizeof(KEY);//sizeof(g_anime)ではダメ
+
+		//アニメーション 
+		int i = (int)g_motionTime3;  //i:現在のキーフレームナンバー
+
+		float dt = 1.0f / g_anime[i].frame;//補間の間隔時間
+
+		//完成したら、元の状態に戻る
+		if (i > g_keyMax - 2)//最大キーフレームナンバーを超えたら
+		{
+			i = g_keyMax - 2;//最大キーフレームナンバーにする
+
+			g_animeStateKen3 = 0;
+			g_motionTime = 0.0f;		//着地時、走る時間リセット	ジャンプと走るモーションがスムーズにつながるポイント！
+		}
+
+		g_motionTime3 += dt;
+
+		if (g_motionTime3 > g_keyMax - 1.0f)//最大時間を超えたら
+		{
+			g_motionTime3 = g_keyMax - 1.0f;//最大最大時間にする
+
+		}
+
+		if (g_motionTime3 - i > 1.0f) //誤差を修正　想定の1.0を超えたら
+		{
+			i++;//次のキーフレームに入る
+		}
+
+		//接続の補間は　[i] * 1.0です、[i + 1] * 0.0ではない
+		for (int j = 0; j < PART_MAX; j++)//パーツ番号
+		{
+			// Rotation
+			g_player.part[j].srt.rot.x = g_anime[i].key[j].rot.x +				// 前のキーフレーム位置
+				(g_anime[i + 1].key[j].rot.x - g_anime[i].key[j].rot.x)			// 前のキーフレームと次のキーフレームの差分
+				* (g_motionTime3 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+			//g_player.part[j].srt.rot.y = g_anime[i].key[j].rot.y +				// 前のキーフレーム位置
+			//	(g_anime[i + 1].key[j].rot.y - g_anime[i].key[j].rot.y)			// 前のキーフレームと次のキーフレームの差分
+			//	* (g_motionTime3 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+			g_player.part[j].srt.rot.z = g_anime[i].key[j].rot.z +				// 前のキーフレーム位置
+				(g_anime[i + 1].key[j].rot.z - g_anime[i].key[j].rot.z)			// 前のキーフレームと次のキーフレームの差分
+				* (g_motionTime3 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+			 //Position
+			g_player.part[j].srt.pos.x = g_anime[i].key[j].pos.x +				// 前のキーフレーム位置
+				(g_anime[i + 1].key[j].pos.x - g_anime[i].key[j].pos.x)			// 前のキーフレームと次のキーフレームの差分
+				* (g_motionTime3 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+			g_player.part[j].srt.pos.y = g_anime[i].key[j].pos.y +				// 前のキーフレーム位置
+				(g_anime[i + 1].key[j].pos.y - g_anime[i].key[j].pos.y)			// 前のキーフレームと次のキーフレームの差分
+				* (g_motionTime3 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+			g_player.part[j].srt.pos.z = g_anime[i].key[j].pos.z +				// 前のキーフレーム位置
+				(g_anime[i + 1].key[j].pos.z - g_anime[i].key[j].pos.z)			// 前のキーフレームと次のキーフレームの差分
+				* (g_motionTime3 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+		}
+
+		//目の前の方向にモーションするように
+		D3DXMatrixIdentity(&rotYMtx);
+		D3DXMatrixRotationY(&rotYMtx,rotY);
+		D3DXVec3TransformCoord(&g_player.part[BODY].srt.pos,
+									&g_player.part[BODY].srt.pos,
+									&rotYMtx);
+
+		g_player.part[BODY].srt.pos.x = g_player.part[BODY].srt.pos.x + vctBuff3.x;		//原点ではなく、立っている場所で発動
+		g_player.part[BODY].srt.pos.z = g_player.part[BODY].srt.pos.z + vctBuff3.z;
+
+		g_player.move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);//モーション再生するとき、WASDキーに影響されなくなる
+
+
+	}
+
+	//PrintDebugProc("今のフレームパターン：%d \n\n", (int)g_motionTime3);
+
+}
+
+void AnimeKen4(KEY g_anime[])
+{
+	if (g_animeStateKen4 == 0)
+	{
+		if (GetKeyboardPress(DIK_H))
+		{
+			g_animeStateKen4 = 1;//動く状態にする	
+			g_motionTime4 = 0.0f;
+
+			vctBuff4 = D3DXVECTOR3(g_player.part[0].srt.pos.x,
+				0.0f,
+				g_player.part[0].srt.pos.z);
+
+			rotY = g_player.part[0].srt.rot.y;
+
+
+		}
+
+	}
+
+	if (g_animeStateKen4)
+	{
+		g_keyMax = sizeof(g_animeKen4) / sizeof(KEY);//sizeof(g_anime)ではダメ
+
+		//アニメーション 
+		int i = (int)g_motionTime4;  //i:現在のキーフレームナンバー
+
+		float dt = 1.0f / g_anime[i].frame;//補間の間隔時間
+
+		//完成したら、元の状態に戻る
+		if (i > g_keyMax - 2)//最大キーフレームナンバーを超えたら
+		{
+			i = g_keyMax - 2;//最大キーフレームナンバーにする
+
+			g_animeStateKen4 = 0;
+			g_motionTime = 0.0f;		//着地時、走る時間リセット	ジャンプと走るモーションがスムーズにつながるポイント！
+		}
+
+		g_motionTime4 += dt;
+
+		if (g_motionTime4 > g_keyMax - 1.0f)//最大時間を超えたら
+		{
+			g_motionTime4 = g_keyMax - 1.0f;//最大最大時間にする
+
+		}
+
+		if (g_motionTime4 - i > 1.0f) //誤差を修正　想定の1.0を超えたら
+		{
+			i++;//次のキーフレームに入る
+		}
+
+		//接続の補間は　[i] * 1.0です、[i + 1] * 0.0ではない
+		for (int j = 0; j < PART_MAX; j++)//パーツ番号
+		{
+			// Rotation
+			g_player.part[j].srt.rot.x = g_anime[i].key[j].rot.x +				// 前のキーフレーム位置
+				(g_anime[i + 1].key[j].rot.x - g_anime[i].key[j].rot.x)			// 前のキーフレームと次のキーフレームの差分
+				* (g_motionTime4 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+			//g_player.part[j].srt.rot.y = g_anime[i].key[j].rot.y +				// 前のキーフレーム位置
+			//	(g_anime[i + 1].key[j].rot.y - g_anime[i].key[j].rot.y)			// 前のキーフレームと次のキーフレームの差分
+			//	* (g_motionTime4 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+			g_player.part[j].srt.rot.z = g_anime[i].key[j].rot.z +				// 前のキーフレーム位置
+				(g_anime[i + 1].key[j].rot.z - g_anime[i].key[j].rot.z)			// 前のキーフレームと次のキーフレームの差分
+				* (g_motionTime4 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+			 //Position
+			g_player.part[j].srt.pos.x = g_anime[i].key[j].pos.x +				// 前のキーフレーム位置
+				(g_anime[i + 1].key[j].pos.x - g_anime[i].key[j].pos.x)			// 前のキーフレームと次のキーフレームの差分
+				* (g_motionTime4 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+			g_player.part[j].srt.pos.y = g_anime[i].key[j].pos.y +				// 前のキーフレーム位置
+				(g_anime[i + 1].key[j].pos.y - g_anime[i].key[j].pos.y)			// 前のキーフレームと次のキーフレームの差分
+				* (g_motionTime4 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+
+			g_player.part[j].srt.pos.z = g_anime[i].key[j].pos.z +				// 前のキーフレーム位置
+				(g_anime[i + 1].key[j].pos.z - g_anime[i].key[j].pos.z)			// 前のキーフレームと次のキーフレームの差分
+				* (g_motionTime4 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+		}
+
+		//目の前の方向にモーションするように
+		D3DXMatrixIdentity(&rotYMtx);
+		D3DXMatrixRotationY(&rotYMtx, rotY);
+		D3DXVec3TransformCoord(&g_player.part[BODY].srt.pos,
+			&g_player.part[BODY].srt.pos,
+			&rotYMtx);
+
+		g_player.part[BODY].srt.pos.x = g_player.part[BODY].srt.pos.x + vctBuff4.x;		//原点ではなく、立っている場所で発動
+		g_player.part[BODY].srt.pos.z = g_player.part[BODY].srt.pos.z + vctBuff4.z;
+
+		g_player.move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);//モーション再生するとき、WASDキーに影響されなくなる
+
+
+	}
+
+	//PrintDebugProc("今のフレームパターン：%d \n\n", (int)g_motionTime4);
+
+}
 
 
 

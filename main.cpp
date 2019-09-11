@@ -6,18 +6,18 @@
 //=============================================================================
 #include "main.h"
 #include "input.h"
-#include "title.h"
+//#include "title.h"
 #include "game.h"
-#include "result.h"
+//#include "result.h"
 #include "fade.h"
-#include "sound.h"
+//#include "sound.h"
 #include "player.h"
 #include "debugproc.h"
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
 #define CLASS_NAME		"AppClass"			// ウインドウのクラス名
-#define WINDOW_NAME		"氷3D"		// ウインドウのキャプション名
+#define WINDOW_NAME		"MG_Battle"		// ウインドウのキャプション名
 
 
 //*****************************************************************************
@@ -45,11 +45,9 @@ MODE				g_mode = MODE_GAME;	// モード
 int					g_next_stage;
 STAGE_CLEAR g_stage_clear;
 
-int rest;
+int rest;			//ポーズのスイッチ
 
-extern PLAYER g_player;
-extern DWORD g_aNumMatItem[];
-
+HWND hWnd;
 //=============================================================================
 // メイン関数
 //=============================================================================
@@ -78,7 +76,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		CLASS_NAME,
 		NULL
 	};
-	HWND hWnd;
+	
 	MSG msg;
 	
 	// ウィンドウクラスの登録
@@ -143,7 +141,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				dwFrameCount = 0;
 			}
 
-			if((dwCurrentTime - dwExecLastTime) >= (1000 / 60))
+			if((dwCurrentTime - dwExecLastTime) >= (1000 / F_P_S))
 			{
 #ifdef _DEBUG
 				PrintDebugProc("FPS:%d\n", g_nCountFPS);
@@ -154,16 +152,15 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 				// 入力更新
 				UpdateInput();
 
-//#ifdef _DEBUG
-			if (g_mode == MODE_GAME)
-			{
-				if (GetKeyboardTrigger(DIK_F3) || ((IsButtonPress(0, BUTTON_SHARE)) && (IsButtonTrigger(0, BUTTON_OPTIONS))) || ((IsButtonTrigger(0, BUTTON_SHARE)) && (IsButtonPress(0, BUTTON_OPTIONS))))
-				{
-					rest = !rest;
-				}
-			}
 
-//#endif
+				//ポーズ処理
+				if (g_mode == MODE_GAME)
+				{
+					if (GetKeyboardTrigger(DIK_F3) || ((IsButtonPress(0, BUTTON_SHARE)) && (IsButtonTrigger(0, BUTTON_OPTIONS))) || ((IsButtonTrigger(0, BUTTON_SHARE)) && (IsButtonPress(0, BUTTON_OPTIONS))))
+					{
+						rest = !rest;
+					}
+				}
 
 				if (rest == 0)
 				{
@@ -321,8 +318,8 @@ HRESULT Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	// フェードの初期化
 	InitFade();
 
-	// サウンドの初期化
-	InitSound(hWnd);
+	//// サウンドの初期化
+	//InitSound(hWnd);
 
 	// 最初はタイトル画面に
 	SetMode(g_mode);
@@ -347,15 +344,15 @@ void Uninit(void)
 		g_pD3D = NULL;
 	}
 
-	UninitTitle();
+	//UninitTitle();
 	UninitGame();
-	UninitResult();
+	//UninitResult();
 
 	// フェードの終了処理
 	UninitFade();
 
 	// サウンドの終了処理
-	UninitSound();
+	//UninitSound();
 
 	// 入力処理の終了処理
 	UninitInput();
@@ -370,9 +367,9 @@ void Uninit(void)
 //=============================================================================
 void Update(void)
 {
+	//強制的にタイトル画面に戻る
 	if (GetKeyboardTrigger(DIK_F4) || (IsButtonPress(0, BUTTON_L3) && IsButtonTrigger(0, BUTTON_R3)) || (IsButtonTrigger(0, BUTTON_L3) && IsButtonPress(0, BUTTON_R3)))
-	{
-		//強制的にタイトル画面に戻る
+	{		
 		SetMode(MODE_TITLE);
 	}
 
@@ -381,7 +378,7 @@ void Update(void)
 	switch(g_mode)
 	{
 	case MODE_TITLE:		// タイトル画面の更新
-		UpdateTitle();
+		//UpdateTitle();
 		break;
 
 	case MODE_GAME:			// ゲーム画面の更新
@@ -391,9 +388,9 @@ void Update(void)
 
 	case MODE_RESULT:		// リザルト画面の更新
 
-		UpdateGame();		//ゲーム画面を保持する
+		//UpdateGame();		//ゲーム画面を保持する
 
-		UpdateResult();	
+		//UpdateResult();	
 		break;
 	}
 
@@ -407,7 +404,7 @@ void Update(void)
 void Draw(void)
 {
 	// バックバッファ＆Ｚバッファのクリア
-	g_pD3DDevice->Clear(0, NULL, (D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER), D3DCOLOR_RGBA(0, 0, 0, 0), 1.0f, 0);
+	g_pD3DDevice->Clear(0, NULL, (D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER), D3DCOLOR_RGBA(200, 200, 200, 0), 1.0f, 0);
 
 	// Direct3Dによる描画の開始
 	if(SUCCEEDED(g_pD3DDevice->BeginScene()))
@@ -415,7 +412,7 @@ void Draw(void)
 		switch(g_mode)
 		{
 		case MODE_TITLE:		// タイトル画面の描画
-			DrawTitle();
+			//DrawTitle();
 			break;
 
 		case MODE_GAME:			// ゲーム画面の描画
@@ -424,9 +421,9 @@ void Draw(void)
 
 		case MODE_RESULT:		// リザルト画面の描画
 
-			DrawGame();			//ゲーム画面を保持する
+			//DrawGame();			//ゲーム画面を保持する
 
-			DrawResult();
+			//DrawResult();
 			break;
 		}
 
@@ -463,19 +460,19 @@ void SetMode(MODE mode)
 	{
 	case MODE_TITLE:
 		// リザルト画面の終了処理
-		UninitResult();
+		//UninitResult();
 
 		// タイトル画面の初期化
-		InitTitle();
+		//InitTitle();
 
 		// ゲーム画面の終了処理
-		UninitGame();
+		//UninitGame();
 
 		break;
 
 	case MODE_GAME:
 		// タイトル画面の終了処理
-		UninitTitle();
+		//UninitTitle();
 
 		// ゲーム画面の初期化
 		InitGame();
@@ -487,7 +484,7 @@ void SetMode(MODE mode)
 		//UninitGame();
 
 		// リザルト画面の初期化
-		InitResult();
+		//InitResult();
 
 		break;
 	}

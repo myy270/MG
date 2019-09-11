@@ -21,7 +21,7 @@
 
 #define DIRECTINPUT_VERSION (0x0800)
 #include "dinput.h"			// DirectInput関連のヘッダー
-#include "xaudio2.h"		// XAudio2関連のヘッダー !!!
+//#include "xaudio2.h"		// XAudio2関連のヘッダー !!!
 
 
 //*****************************************************************************
@@ -53,6 +53,7 @@
 
 #define SAFE_RELEASE(ptr)		{ if(ptr) { (ptr)->Release(); (ptr) = NULL; } }//!!!
 
+#define F_P_S	(60)
 // 上記２Ｄポリゴン頂点フォーマットに合わせた構造体を定義
 typedef struct
 {

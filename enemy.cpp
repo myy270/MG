@@ -13,7 +13,7 @@
 #include "effect.h"
 #include "item.h"
 #include "score.h"
-#include "sound.h"
+//#include "sound.h"
 #include "debugproc.h"
 #include "timer.h"
 
@@ -429,7 +429,7 @@ void UpdateEnemy(void)
 	{//AIモードの切替　即ち、シングルモードとダブルモードの切替
 		g_ai = !g_ai;
 		g_left = g_right = g_up = g_down = 0;
-		SetPlayMode((PLAY_MODE)!GetPlayMode());
+		//SetPlayMode((PLAY_MODE)!GetPlayMode());
 
 		if (GetPlayMode() == PLAY_MODE_DOUBLE)
 		{
@@ -626,7 +626,7 @@ void UpdateEnemy(void)
 				SetBullet(pos, move, 4.0f, 4.0f, 60 * 4);
 
 				// SE再生
-				PlaySound(SOUND_LABEL_SE_SHOT);
+				//PlaySound(SOUND_LABEL_SE_SHOT);
 			}
 		}
 	}
@@ -712,7 +712,7 @@ void UpdateEnemy(void)
 							ChangeScore(100);
 
 							// SE再生
-							PlaySound(SOUND_LABEL_SE_COIN);
+							//PlaySound(SOUND_LABEL_SE_COIN);
 						}
 
 						// アイテム消去

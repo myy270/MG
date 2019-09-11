@@ -10,7 +10,7 @@
 #include "debugproc.h"
 #include "enemy.h"
 #include "score.h"
-#include "title.h"
+
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
@@ -23,11 +23,11 @@
 #define	RATE_CHASE_CAMERA_P	(0.35f)					// カメラの視点への補正係数
 #define	RATE_CHASE_CAMERA_R	(0.20f)					// カメラの注視点への補正係数
 
-#define	CHASE_HEIGHT_P_NEAR		(400.0f)				// 追跡時の視点の高さ
+#define	CHASE_HEIGHT_P_NEAR		(136.0f)				// 追跡時の視点の高さ
 #define	CHASE_HEIGHT_P_FAR		(1700.0f)				// 追跡時の視点の高さ
 
-#define	RADIUS_NEAR		(400.0f)				// 視点と注視点のxoz面の距離
-#define	RADIUS_FAR		(300.0f)				// 視点と注視点のxoz面の距離
+#define	RADIUS_NEAR		(356.0f)				// 視点と注視点のxoz面の距離
+#define	RADIUS_FAR		(350.0f)				// 視点と注視点のxoz面の距離
 
 
 #define	CHASE_HEIGHT_R		(10.0f)					// 追跡時の注視点の高さ
@@ -65,17 +65,17 @@ HRESULT InitCamera(void)
 	g_cutScene = false;
 
 
-	if (GetCursorIdx() == 0)
-	{
+	/*if (GetCursorIdx() == 0)
+	{*/
 		g_cameraMode = CAMERA_MODE_NEAR;//デフォルト設定
 		g_playMode = PLAY_MODE_SINGLE;//デフォルト設定
 
-	}
-	else if (GetCursorIdx() == 1)
-	{
-		g_cameraMode = CAMERA_MODE_FAR;//デフォルト設定
-		g_playMode = PLAY_MODE_DOUBLE;//デフォルト設定
-	}
+	//}
+	//else if (GetCursorIdx() == 1)
+	//{
+	//	g_cameraMode = CAMERA_MODE_FAR;//デフォルト設定
+	//	g_playMode = PLAY_MODE_DOUBLE;//デフォルト設定
+	//}
 
 
 	if (g_cameraMode == CAMERA_MODE_NEAR)
@@ -87,7 +87,7 @@ HRESULT InitCamera(void)
 		g_chaseHightP = CHASE_HEIGHT_P_FAR;
 	}
 
-	g_posCameraP = D3DXVECTOR3(0.0f, 100.0f, - RADIUS_FAR);
+	g_posCameraP = D3DXVECTOR3(0.0f, 100.0f, - RADIUS_NEAR);
 	g_posCameraR = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 	g_posCameraU = D3DXVECTOR3(0.0f, 1.0f, 0.0f);
 
@@ -113,12 +113,10 @@ void UninitCamera(void)
 //=============================================================================
 void UpdateCamera(void)
 {
-	D3DXVECTOR3 posPlayer;
+	
 	D3DXVECTOR3 rotPlayer;
 	D3DXVECTOR3 movePlayer;
 
-	// モデルの現在の位置取得
-	posPlayer = GetPositionPlayer();
 
 	//カメラモード変換
 	{
@@ -129,25 +127,25 @@ void UpdateCamera(void)
 
 		}
 
-		{//これを消すと、カメラが自由に移動できる
-			if (g_cameraMode == CAMERA_MODE_NEAR)
-			{
-				g_chaseHightP = CHASE_HEIGHT_P_NEAR;
-				g_fLengthIntervalCamera = RADIUS_NEAR;
+		//{//これを消すと、カメラが自由に移動できる
+		//	if (g_cameraMode == CAMERA_MODE_NEAR)
+		//	{
+		//		g_chaseHightP = CHASE_HEIGHT_P_NEAR;
+		//		g_fLengthIntervalCamera = RADIUS_NEAR;
 
-				if (g_cutScene)
-				{//勝利時のカットシーン
-					g_chaseHightP = 100.0f;
-					g_fLengthIntervalCamera = 200.0f;
-				}
+		//		if (g_cutScene)
+		//		{//勝利時のカットシーン
+		//			g_chaseHightP = 100.0f;
+		//			g_fLengthIntervalCamera = 200.0f;
+		//		}
 
-			}
-			else if (g_cameraMode == CAMERA_MODE_FAR)
-			{
-				g_chaseHightP = CHASE_HEIGHT_P_FAR;
-				g_fLengthIntervalCamera = RADIUS_FAR;
-			}
-		}
+		//	}
+		//	else if (g_cameraMode == CAMERA_MODE_FAR)
+		//	{
+		//		g_chaseHightP = CHASE_HEIGHT_P_FAR;
+		//		g_fLengthIntervalCamera = RADIUS_FAR;
+		//	}
+		//}
 	}
 
 #ifdef _DEBUG
@@ -177,29 +175,48 @@ void UpdateCamera(void)
 		}
 	}
 
-	if (GetKeyboardPress(DIK_G))
+	if (GetKeyboardPress(DIK_R))
 	{//zoom
 		g_fLengthIntervalCamera -= VALUE_MOVE_CAMERA;
 	}
 
-	if (GetKeyboardPress(DIK_H))
+	if (GetKeyboardPress(DIK_T))
 	{//zoom
 		g_fLengthIntervalCamera += VALUE_MOVE_CAMERA;
 	}
 
 
-	if (GetKeyboardPress(DIK_J))
+	if (GetKeyboardPress(DIK_Y))
 	{// 追跡時の視点の高さ
 		g_chaseHightP -= VALUE_MOVE_CAMERA;
 	}
 
-	if (GetKeyboardPress(DIK_K))
+	if (GetKeyboardPress(DIK_U))
 	{// 追跡時の視点の高さ
 		g_chaseHightP += VALUE_MOVE_CAMERA;
 	}
 
 #endif
 
+	PrintDebugProc("\n");
+
+	PrintDebugProc("chaseHightP:%f\n", g_chaseHightP);
+
+	PrintDebugProc("\n");
+
+	PrintDebugProc("LengthIntervalCamera:%f\n", g_fLengthIntervalCamera);
+
+	PrintDebugProc("\n");
+
+}
+
+
+void UpdateCamera2(void)
+{
+	D3DXVECTOR3 posPlayer;
+
+	// モデルの現在の位置取得
+	posPlayer = GetPositionPlayer();
 
 	if (g_cameraMode == CAMERA_MODE_NEAR)
 	{
@@ -242,29 +259,13 @@ void UpdateCamera(void)
 
 	}
 
-
-
-	PrintDebugProc("\n");
-	PrintDebugProc("\n");
-	PrintDebugProc("\n");
-
 	PrintDebugProc("[camera pos：(%f : %f : %f)]\n", g_posCameraP.x,
-											g_posCameraP.y, 
-											g_posCameraP.z);
-		
+		g_posCameraP.y,
+		g_posCameraP.z);
+
 	PrintDebugProc("[camera at：(%f : %f : %f)]\n", g_posCameraR.x,
-											g_posCameraR.y, 
-											g_posCameraR.z);
-
-	PrintDebugProc("\n");
-
-	PrintDebugProc("chaseHightP:%f\n", g_chaseHightP);
-
-	PrintDebugProc("\n");
-
-	PrintDebugProc("LengthIntervalCamera:%f\n", g_fLengthIntervalCamera);
-
-	PrintDebugProc("\n");
+		g_posCameraR.y,
+		g_posCameraR.z);
 
 }
 
