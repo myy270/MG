@@ -20,6 +20,7 @@
 #include "score.h"
 #include "item.h"
 #include "sound.h"
+#include "field_star.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -48,7 +49,7 @@ HRESULT InitGame(void)
 
 	// 地面の初期化
 	InitMeshField(D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 0.0f), 16, 16, 80.0f, 80.0f);//1280*1280
-
+	InitFieldStar();
 	// 壁の初期化 
 
 	//北壁の地面
@@ -160,7 +161,7 @@ void UninitGame(void)
 
 	// 地面の終了処理
 	UninitMeshField();
-
+	UninitFieldStar();
 	// 壁の終了処理
 	UninitMeshWall();
 
@@ -210,7 +211,7 @@ void UpdateGame(void)
 
 	// 地面処理の更新
 	UpdateMeshField();
-
+	UpdateFieldStar();
 	// 壁処理の更新
 	UpdateMeshWall();
 
@@ -256,7 +257,7 @@ void DrawGame(void)
 
 	// 地面処理の描画
 	DrawMeshField();
-
+	DrawFieldStarModel();
 	// 影処理の描画
 	DrawShadow();
 

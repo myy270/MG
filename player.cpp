@@ -49,7 +49,7 @@ void AnimeWalk();
 LPDIRECT3DTEXTURE9	g_pD3DTexturePlayer;		// テクスチャ読み込み場所
 PLAYER				g_player;					// プレイヤーワーク
 
-int g_mode = MODE_EDIT;//編輯モードかどうか
+int g_mode = MODE_TITLE;//編輯モードかどうか
 int g_conId = 0;//コントロールID
 
 float g_motionTime = 0.0f;	// アニメーション全体時間
