@@ -7,11 +7,87 @@
 #include "player.h"
 #include "hitjudge.h"
 #include "enemy.h"
+
 #include "field_star.h"
 
 //*****************************************************************************
 // グローバル変数
 //*****************************************************************************
+
+
+//#include "field_star.h"
+
+// 壁の当たり判定
+D3DXVECTOR3 CollideGeo(D3DXVECTOR3* m_A, D3DXVECTOR3 move, LPD3DXMESH* pThingB3D)
+{
+	//当たり判定
+	FLOAT fDistance = 0.0f;
+	D3DXVECTOR3	 vNormal = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+	D3DXMATRIX tempMatrix;
+	D3DXMatrixIdentity(&tempMatrix);
+
+	if (Collide(*m_A, move, &fDistance, &vNormal, pThingB3D, &tempMatrix) == TRUE && fDistance <= HIT_WALL_FIRST)
+	{
+		//当たり状態なので、滑らせる
+		move = Slip(move, vNormal);//滑りベクトルを計算
+
+		//滑りベクトル先の地面突起とのレイ判定 ２重に判定	
+		if (Collide(*m_A, move, &fDistance, &vNormal, pThingB3D, &tempMatrix) && fDistance <= HIT_WALL_SECOND)
+		{
+			//２段目の当たり状態なので、滑らせる おそらく上がる方向		
+			move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);//滑りベクトルを計算
+		}
+	}
+
+	return move;
+}
+
+void AnimePosAndHitjudge(D3DXVECTOR3 *af_vec, D3DXMATRIX world, D3DXMATRIX buff, D3DXVECTOR3 bf_vec, D3DXVECTOR3 move_vec, float motionTime, float part , PART opponent,  float length)
+{
+	D3DXVECTOR3 move;
+	D3DXVECTOR3 current_pos = *af_vec;
+
+	// Position
+	FrameFeedVec(af_vec, bf_vec, move_vec, motionTime);
+
+	move = ReturnLocalToWorldVec(world, buff, current_pos);
+	current_pos = ReturnLocalToWorldVec(world, buff, *af_vec);
+	move = move - current_pos;
+
+	for (int i = 0; i < part; i++)
+	{
+		CollideAttack(&current_pos, move, &opponent, length);
+	}
+}
+
+D3DXVECTOR3 ReturnLocalToWorldVec(D3DXMATRIX world, D3DXMATRIX buff, D3DXVECTOR3 local_pos)
+{
+	D3DXMatrixIdentity(&world);
+	D3DXMatrixMultiply(&world, &world, &buff);
+	D3DXVec3TransformCoord(&local_pos, &local_pos, &world);
+
+	return local_pos;
+}
+
+// 武器の当たり判定
+// ヘッダーのコメントみて
+// sword_pos, sword_move, enemymesh
+BOOL CollideAttack(D3DXVECTOR3* m_A, D3DXVECTOR3 move, PART* part, float length)
+{
+	//当たり判定
+	FLOAT fDistance = 0.0f;
+	D3DXVECTOR3	 vNormal = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+
+	if (Collide(*m_A, move, &fDistance, &vNormal, &part->pMesh, &part->mtxWorld) == TRUE && fDistance <= length)
+	{
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+
+///////////////////////////////////↓　使わない///////////////////////////////////////
 
 
 //=============================================
@@ -112,32 +188,6 @@ HRESULT FindVerticesOnPoly(LPD3DXMESH pMesh, DWORD dwPolyIndex, D3DXVECTOR3* pvV
 	return S_OK;
 }
 
-
-D3DXVECTOR3 CollideGeo(D3DXVECTOR3* m_A, D3DXVECTOR3 move, LPD3DXMESH* pThingB3D)
-{
-
-	//当たり判定
-	FLOAT fDistance = 0.0f;
-	D3DXVECTOR3	 vNormal = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-	D3DXMATRIX tempMatrix;
-	D3DXMatrixIdentity(&tempMatrix);
-
-	if (Collide(*m_A, move, &fDistance, &vNormal, pThingB3D, &tempMatrix) == TRUE && fDistance <= HIT_SKYDOME_FIRST)
-	{
-		//当たり状態なので、滑らせる
-		move = Slip(move, vNormal);//滑りベクトルを計算
-	
-		//滑りベクトル先の地面突起とのレイ判定 ２重に判定	
-		if (Collide(*m_A, move, &fDistance, &vNormal, pThingB3D, &tempMatrix) && fDistance <= HIT_SKYDOME_SECOND)
-		{
-			//２段目の当たり状態なので、滑らせる おそらく上がる方向		
-			move = D3DXVECTOR3(0.0f, 0.0f, 0.0f);//滑りベクトルを計算
-		}
-	}	
-	
-	return move;
-}
-
 //
 //D3DXVECTOR3 Slip(D3DXVECTOR3 L,D3DXVECTOR3 N)
 // L:入射ベクトル（レイ） N:ポリゴンの法線,k
@@ -151,10 +201,34 @@ D3DXVECTOR3 Slip(D3DXVECTOR3 L, D3DXVECTOR3 N)
 	return S;
 }
 
-//=============================================================================
-// hitjudge取得関数
-//=============================================================================
-//HITJUDGE *GetHitjudge(int no)
-//{
-//	return (&Hitjudge[no]);
-//}
+
+//レイを視認できるようにレイをレンダリングする
+// 使えないなう
+VOID RenderRay(LPDIRECT3DDEVICE9 pDevice, D3DXVECTOR3 vStart, D3DXVECTOR3 vDir)
+{
+	pDevice->SetFVF(D3DFVF_XYZ);
+	D3DXVECTOR3 vPnt[2];
+	vPnt[0] = vStart;
+	vPnt[1] = vDir * 100;
+	vPnt[1].y = vPnt[0].y;
+
+	D3DXMATRIX mWorld;
+	D3DXMatrixIdentity(&mWorld);
+	pDevice->SetTransform(D3DTS_WORLD, &mWorld);
+	//レイのマテリアル設定　（白に設定）
+	D3DMATERIAL9 mtrl;
+	ZeroMemory(&mtrl, sizeof(mtrl));
+	mtrl.Diffuse.a = 255;
+	mtrl.Diffuse.r = 255;
+	mtrl.Diffuse.g = 255;
+	mtrl.Diffuse.b = 255;
+	mtrl.Ambient = mtrl.Diffuse;
+	pDevice->SetMaterial(&mtrl);
+	//レイのレンダリング
+	pDevice->DrawPrimitiveUP(D3DPT_LINELIST, 1, vPnt, sizeof(D3DXVECTOR3));
+
+	//　レイのレンダリング
+	//RenderRay(pDevice, g_player.part[SWORD_R].srt.pos, g_player.part[SWORD_R].srt.rot);
+
+}
+

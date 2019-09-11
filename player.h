@@ -108,6 +108,9 @@ D3DXVECTOR3 GetRotationPlayer(void);
 D3DXVECTOR3 GetRotationDestPlayer(void);
 D3DXVECTOR3 GetMovePlayer(void);
 
+// コマ送りアニメーションの関数
+// rotとpos共用
+void FrameFeedVec(D3DXVECTOR3 *af_vec, D3DXVECTOR3 bf_vec, D3DXVECTOR3 move_vec, float motionTime);
 
 
 #endif

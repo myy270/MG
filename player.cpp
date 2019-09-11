@@ -8,6 +8,8 @@
 #include "camera.h"
 #include "input.h"
 #include "debugproc.h"
+#include "hitjudge.h"
+#include "enemy.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -51,6 +53,8 @@ void AnimeKen4(KEY g_anime[]);	//剣を振り下ろす
 LPDIRECT3DTEXTURE9	g_pD3DTexturePlayer;		// テクスチャ読み込み場所
 LPDIRECT3DTEXTURE9	g_pD3DTextureSword;		// テクスチャ読み込み場所
 PLAYER				g_player;					// プレイヤーワーク
+D3DXMATRIX mtxWorld;
+extern ENEMY g_enemy;
 
 int g_mode = MODE_INGAME;//編輯モードかどうか
 
@@ -1567,7 +1571,7 @@ void UpdatePlayer(void)
 void DrawPlayer(void)
 {
 	LPDIRECT3DDEVICE9 pDevice = GetDevice();
-	D3DXMATRIX mtxScl, mtxRot, mtxTranslate, mtxWorld;
+	D3DXMATRIX mtxScl, mtxRot, mtxTranslate;
 	D3DXMATERIAL *pD3DXMat;
 
 	D3DMATERIAL9 matDef;
@@ -1631,12 +1635,14 @@ void DrawPlayer(void)
 			// マテリアル情報に対するポインタを取得
 			pD3DXMat = (D3DXMATERIAL*)g_player.part[i].pMatBuff->GetBufferPointer();
 
+
 			// テクスチャの設定
 			pDevice->SetTexture(0, g_pD3DTexturePlayer);
 
 			if (i == SWORD_R)
 			{
 				pDevice->SetTexture(0, g_pD3DTextureSword);
+
 			}
 
 			for (int nCntMat = 0; nCntMat < (int)g_player.part[i].nNumMat; nCntMat++)
@@ -1647,9 +1653,10 @@ void DrawPlayer(void)
 				// 描画
 				g_player.part[i].pMesh->DrawSubset(nCntMat);
 			}
-			
+
 		}
 	}
+
 	pDevice->SetMaterial(&matDef);// マテリアルをデフォルトに戻す
 }
 
@@ -2016,41 +2023,19 @@ void AnimeKen(KEY g_anime[])
 		}
 
 
-
-
 		//接続の補間は　[i] * 1.0です、[i + 1] * 0.0ではない
 
 		int j = SWORD_R;
 
 		// Rotation
-		g_player.part[j].srt.rot.x = g_anime[i].key[j].rot.x +				// 前のキーフレーム位置
-			(g_anime[i + 1].key[j].rot.x - g_anime[i].key[j].rot.x)			// 前のキーフレームと次のキーフレームの差分
-			* (g_motionTime2 - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-		g_player.part[j].srt.rot.y = g_anime[i].key[j].rot.y +				// 前のキーフレーム位置
-			(g_anime[i + 1].key[j].rot.y - g_anime[i].key[j].rot.y)			// 前のキーフレームと次のキーフレームの差分
-			* (g_motionTime2 - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-		g_player.part[j].srt.rot.z = g_anime[i].key[j].rot.z +				// 前のキーフレーム位置
-			(g_anime[i + 1].key[j].rot.z - g_anime[i].key[j].rot.z)			// 前のキーフレームと次のキーフレームの差分
-			* (g_motionTime2 - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
+		FrameFeedVec(&g_player.part[j].srt.rot, g_anime[i].key[j].rot, g_anime[i + 1].key[j].rot, g_motionTime2 - i);
 
 		// Position
-		g_player.part[j].srt.pos.x = g_anime[i].key[j].pos.x +				// 前のキーフレーム位置
-			(g_anime[i + 1].key[j].pos.x - g_anime[i].key[j].pos.x)			// 前のキーフレームと次のキーフレームの差分
-			* (g_motionTime2 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+		AnimePosAndHitjudge(&g_player.part[j].srt.pos, mtxWorld, mtxBuff, g_anime[i].key[j].pos , g_anime[i + 1].key[j].pos, g_motionTime2 - i, PART_MAX_ENEMY, g_enemy.part[i], HIT_THROW_SWORD);
 
-		g_player.part[j].srt.pos.y = g_anime[i].key[j].pos.y +				// 前のキーフレーム位置
-			(g_anime[i + 1].key[j].pos.y - g_anime[i].key[j].pos.y)			// 前のキーフレームと次のキーフレームの差分
-			* (g_motionTime2 - i);											// に　全体アニメ時間の小数点以下の割合をかける
+		// PrintDebugProc("aaaaaa：%f ,%f ,%f  \n", current_pos.x, current_pos.y, current_pos.z);
 
-		g_player.part[j].srt.pos.z = g_anime[i].key[j].pos.z +				// 前のキーフレーム位置
-			(g_anime[i + 1].key[j].pos.z - g_anime[i].key[j].pos.z)			// 前のキーフレームと次のキーフレームの差分
-			* (g_motionTime2 - i);											// に　全体アニメ時間の小数点以下の割合をかける
-
-
-	}
+	}//
 
 }
 
@@ -2063,10 +2048,11 @@ void AnimeKen3(KEY g_anime[])
 		{
 			g_animeStateKen3 = 1;//動く状態にする	
 			g_motionTime3 = 0.0f;
-	
-			vctBuff3 = D3DXVECTOR3( g_player.part[0].srt.pos.x,
-									0.0f,
-									g_player.part[0].srt.pos.z);
+
+			vctBuff3 = D3DXVECTOR3(g_player.part[0].srt.pos.x,
+				0.0f,
+				g_player.part[0].srt.pos.z);
+
 
 			rotY = g_player.part[0].srt.rot.y;
 
@@ -2138,10 +2124,10 @@ void AnimeKen3(KEY g_anime[])
 
 		//目の前の方向にモーションするように
 		D3DXMatrixIdentity(&rotYMtx);
-		D3DXMatrixRotationY(&rotYMtx,rotY);
+		D3DXMatrixRotationY(&rotYMtx, rotY);
 		D3DXVec3TransformCoord(&g_player.part[BODY].srt.pos,
-									&g_player.part[BODY].srt.pos,
-									&rotYMtx);
+			&g_player.part[BODY].srt.pos,
+			&rotYMtx);
 
 		g_player.part[BODY].srt.pos.x = g_player.part[BODY].srt.pos.x + vctBuff3.x;		//原点ではなく、立っている場所で発動
 		g_player.part[BODY].srt.pos.z = g_player.part[BODY].srt.pos.z + vctBuff3.z;
@@ -2152,7 +2138,22 @@ void AnimeKen3(KEY g_anime[])
 	}
 
 	//PrintDebugProc("今のフレームパターン：%d \n\n", (int)g_motionTime3);
+}
 
+void FrameFeedVec(D3DXVECTOR3 *af_vec, D3DXVECTOR3 bf_vec, D3DXVECTOR3 move_vec, float motionTime)
+{
+	af_vec->x = bf_vec.x +				// 前のキーフレーム位置
+		(move_vec.x - bf_vec.x)			// 前のキーフレームと次のキーフレームの差分
+		* (motionTime);					// に　全体アニメ時間の小数点以下の割合をかける
+
+	af_vec->y = bf_vec.y +				// 前のキーフレーム位置
+		(move_vec.y - bf_vec.y)			// 前のキーフレームと次のキーフレームの差分
+		* (motionTime);					// に　全体アニメ時間の小数点以下の割合をかける
+
+	af_vec->z = bf_vec.z +				// 前のキーフレーム位置
+		(move_vec.z - bf_vec.z)			// 前のキーフレームと次のキーフレームの差分
+		* (motionTime);					// に　全体アニメ時間の小数点以下の割合をかける
+	
 }
 
 void AnimeKen4(KEY g_anime[])
@@ -2192,6 +2193,7 @@ void AnimeKen4(KEY g_anime[])
 			g_animeStateKen4 = 0;
 			g_motionTime = 0.0f;		//着地時、走る時間リセット	ジャンプと走るモーションがスムーズにつながるポイント！
 		}
+
 
 		g_motionTime4 += dt;
 
@@ -2254,6 +2256,5 @@ void AnimeKen4(KEY g_anime[])
 	//PrintDebugProc("今のフレームパターン：%d \n\n", (int)g_motionTime4);
 
 }
-
 
 
