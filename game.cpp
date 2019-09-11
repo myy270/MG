@@ -19,7 +19,7 @@
 #include "timer.h"
 //#include "score.h"
 #include "item.h"
-
+#include "field_star.h"
 //#include "sound.h"
 
 
