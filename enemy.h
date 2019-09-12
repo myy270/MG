@@ -10,7 +10,7 @@
 #include "main.h"
 #include "item.h"
 
-#define PART_MAX_ENEMY	(6)		// パーツの数
+#define PART_MAX_ENEMY	(7)		// パーツの数
 
 //*****************************************************************************
 // 構造体定義

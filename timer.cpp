@@ -28,7 +28,7 @@
 HRESULT MakeVertexTimer(LPDIRECT3DDEVICE9 pDevice);
 void SetTextureTimer(int idx, int number);
 
-
+//extern int g_next_stage;
 
 //*****************************************************************************
 // ƒOƒ[ƒoƒ‹•Ï”éŒ¾
@@ -116,7 +116,6 @@ void UpdateTimer(void)
 		if((g_nTimer < 0) && (g_timeOut == 0))
 		{
 			g_timeOut = 1;
-
 			SetFade(FADE_OUT);
 
 		}

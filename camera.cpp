@@ -10,6 +10,7 @@
 #include "debugproc.h"
 #include "enemy.h"
 #include "score.h"
+#include "title.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -23,7 +24,7 @@
 #define	RATE_CHASE_CAMERA_P	(0.35f)					// カメラの視点への補正係数
 #define	RATE_CHASE_CAMERA_R	(0.20f)					// カメラの注視点への補正係数
 
-#define	CHASE_HEIGHT_P_NEAR		(136.0f)				// 追跡時の視点の高さ
+#define	CHASE_HEIGHT_P_NEAR		(236.0f)				// 追跡時の視点の高さ
 #define	CHASE_HEIGHT_P_FAR		(1700.0f)				// 追跡時の視点の高さ
 
 #define	RADIUS_NEAR		(356.0f)				// 視点と注視点のxoz面の距離
@@ -65,17 +66,17 @@ HRESULT InitCamera(void)
 	g_cutScene = false;
 
 
-	/*if (GetCursorIdx() == 0)
-	{*/
+	if (GetCursorIdx() == 0)
+	{
 		g_cameraMode = CAMERA_MODE_NEAR;//デフォルト設定
 		g_playMode = PLAY_MODE_SINGLE;//デフォルト設定
 
-	//}
-	//else if (GetCursorIdx() == 1)
-	//{
-	//	g_cameraMode = CAMERA_MODE_FAR;//デフォルト設定
-	//	g_playMode = PLAY_MODE_DOUBLE;//デフォルト設定
-	//}
+	}
+	else if (GetCursorIdx() == 1)
+	{
+		g_cameraMode = CAMERA_MODE_FAR;//デフォルト設定
+		g_playMode = PLAY_MODE_DOUBLE;//デフォルト設定
+	}
 
 
 	if (g_cameraMode == CAMERA_MODE_NEAR)
@@ -127,25 +128,25 @@ void UpdateCamera(void)
 
 		}
 
-		//{//これを消すと、カメラが自由に移動できる
-		//	if (g_cameraMode == CAMERA_MODE_NEAR)
-		//	{
-		//		g_chaseHightP = CHASE_HEIGHT_P_NEAR;
-		//		g_fLengthIntervalCamera = RADIUS_NEAR;
+		{//これを消すと、カメラが自由に移動できる
+			if (g_cameraMode == CAMERA_MODE_NEAR)
+			{
+				g_chaseHightP = CHASE_HEIGHT_P_NEAR;
+				g_fLengthIntervalCamera = RADIUS_NEAR;
 
-		//		if (g_cutScene)
-		//		{//勝利時のカットシーン
-		//			g_chaseHightP = 100.0f;
-		//			g_fLengthIntervalCamera = 200.0f;
-		//		}
+				if (g_cutScene)
+				{//勝利時のカットシーン
+					g_chaseHightP = 100.0f;
+					g_fLengthIntervalCamera = 200.0f;
+				}
 
-		//	}
-		//	else if (g_cameraMode == CAMERA_MODE_FAR)
-		//	{
-		//		g_chaseHightP = CHASE_HEIGHT_P_FAR;
-		//		g_fLengthIntervalCamera = RADIUS_FAR;
-		//	}
-		//}
+			}
+			else if (g_cameraMode == CAMERA_MODE_FAR)
+			{
+				g_chaseHightP = CHASE_HEIGHT_P_FAR;
+				g_fLengthIntervalCamera = RADIUS_FAR;
+			}
+		}
 	}
 
 #ifdef _DEBUG

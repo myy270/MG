@@ -10,7 +10,7 @@
 #include "main.h"
 
 //*************キャラクターデータ変数の用意*****************************
-#define		NUM_FIELD	(6)
+#define		NUM_FIELD	(2)
 
 //*************モデルーデータ変数の用意*****************************
 #define		NUM_SKYMODEL	(2)
@@ -20,14 +20,14 @@ namespace warpzoneNS
 	// warpzone の中心座標
 	// 2次元ベクトルで距離を抽出、一定以下の距離でフラグオン
 	const D3DXVECTOR3 warp0 = D3DXVECTOR3(0, 0, 0); // 地面の星
-	const D3DXVECTOR3 warp1 = D3DXVECTOR3(333, 0, 476);
+	const D3DXVECTOR3 warp1 = D3DXVECTOR3(10.87f, 0, 359.13f);
 	const D3DXVECTOR3 warp2 = D3DXVECTOR3(-330, 0, 476);
 	const D3DXVECTOR3 warp3 = D3DXVECTOR3(-558, 0, -176);
 	const D3DXVECTOR3 warp4 = D3DXVECTOR3(-14, 0, -572);
 	const D3DXVECTOR3 warp5 = D3DXVECTOR3(539, 0, -191);
 
 	// warpzoneからwarpする距離（キャラの中心-warpzoneの中心） 2次元ベクトルの距離
-	const float into_warpzone = 10;
+	const float into_warpzone = 60;
 }
 
 struct MODEL3D

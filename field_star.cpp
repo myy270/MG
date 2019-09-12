@@ -13,6 +13,7 @@
 #include "fade.h"
 #include "main.h"
 
+#define TEXTURE_STAR  "data/TEXTURE/field003.jpg"
 
 //*************キャラクターデータ変数の用意*****************************
 MODEL	FieldStar[NUM_FIELD];			//プレイヤーキャラクタ構造体
@@ -20,14 +21,14 @@ MODEL	FieldStar[NUM_FIELD];			//プレイヤーキャラクタ構造体
 using namespace warpzoneNS;
 extern PLAYER g_player;
 extern ENEMY g_enemy;
-extern int g_next_stage;
+//extern int g_next_stage;
 extern STAGE_CLEAR g_stage_clear;
 
 //*********************モデルデータファイル名配列********************
 const char* FieldStarModelData[] = 
 {
-	"data/MODEL/sample_field.x",
-	"data/MODEL/sample_warpzone.x"
+	"data/MODEL/star.x",
+	"data/MODEL/wrap2.x"
 };
 
 
@@ -87,9 +88,9 @@ HRESULT InitFieldStar(void)
 
 
 	// テクスチャの読み込み
-	//D3DXCreateTextureFromFile(pDevice,		// デバイスへのポインタ
-	//	TEXTURE_SKY,						// ファイルの名前
-	//	&FieldStar[0].part[0].pD3DTextureModel);	// 読み込むメモリー
+	D3DXCreateTextureFromFile(pDevice,		// デバイスへのポインタ
+		TEXTURE_STAR,						// ファイルの名前
+		&FieldStar[0].model3d.pD3DTextureModel);	// 読み込むメモリー
 		
 	return S_OK;
 }
@@ -130,10 +131,14 @@ void UninitFieldStar(void)
 //=============================================================================
 void UpdateFieldStar(void)
 {
-	for (int i = 1; i < NUM_FIELD; i++)
+	if (GetMode() == MODE_GAME)
 	{
-		playerWarp(i);
+		for (int i = 1; i < NUM_FIELD; i++)
+		{
+			playerWarp(i);
+		}
 	}
+
 }
 
 //=============================================================================
@@ -199,12 +204,17 @@ void DrawFieldStarModel(void)
 
 void playerWarp( int i)
 {
-	D3DXVECTOR2 A = D3DXVECTOR2(g_enemy.part[0].srt.pos.x, g_enemy.part[0].srt.pos.z);
+	D3DXVECTOR2 A = D3DXVECTOR2(g_player.part[0].srt.pos.x, g_player.part[0].srt.pos.z);
 	D3DXVECTOR2 B = D3DXVECTOR2(FieldStar[i].pos.x, FieldStar[i].pos.z);
 	if (distanceVec2(A, B) <= into_warpzone /*&& checkClearStage(i) == TRUE*/)
 	{
-		g_next_stage = i;
-		SetFade(FADE_OUT);
+
+		if (i == 1)
+		{
+			SetFade(FADE_OUT);
+		}
+		
+		
 	}
 }
 
@@ -214,26 +224,7 @@ bool checkClearStage(int i)
 	{
 		return FALSE;
 	}
-	if (g_stage_clear.stage02 == TRUE && i == STAGE02)
-	{
-		return FALSE;
-	}
-	if (g_stage_clear.stage03 == TRUE && i == STAGE03)
-	{
-		return FALSE;
-	}
-	if (g_stage_clear.stage04 == TRUE && i == STAGE04)
-	{
-		return FALSE;
-	}
-	if (g_stage_clear.stage05 == TRUE && i == STAGE05)
-	{
-		return FALSE;
-	}
-	if (g_stage_clear.stage06 == TRUE && i == STAGE06)
-	{
-		return FALSE;
-	}
+
 	return TRUE;
 }
 
@@ -298,24 +289,5 @@ void returnClearTrue(MODE mode)
 	{
 		g_stage_clear.stage01 = TRUE;
 	}
-	if (mode = STAGE02)
-	{
-		g_stage_clear.stage02 = TRUE;
-	}
-	if (mode = STAGE03)
-	{
-		g_stage_clear.stage03 = TRUE;
-	}
-	if (mode = STAGE04)
-	{
-		g_stage_clear.stage04 = TRUE;
-	}
-	if (mode = STAGE05)
-	{
-		g_stage_clear.stage05 = TRUE;
-	}
-	if (mode = STAGE06)
-	{
-		g_stage_clear.stage06 = TRUE;
-	}
+
 }
