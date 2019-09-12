@@ -1,16 +1,16 @@
-//=============================================================================
+﻿//=============================================================================
 //
-// ���C������ [main.h]
-// Author : ���p�j
+// メイン処理 [main.h]
+// Author : 麦英泳
 //
 //=============================================================================
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
-#define _CRT_SECURE_NO_WARNINGS			// scanf ��warning�h�~
+#define _CRT_SECURE_NO_WARNINGS			// scanf のwarning防止
 
 //*****************************************************************************
-// �C���N���[�h�t�@�C��
+// インクルードファイル
 //*****************************************************************************
 #include "windows.h"
 
@@ -20,14 +20,14 @@
 #include <stdio.h>
 
 #define DIRECTINPUT_VERSION (0x0800)
-#include "dinput.h"			// DirectInput�֘A�̃w�b�_�[
-#include "xaudio2.h"		// XAudio2�֘A�̃w�b�_�[ !!!
+#include "dinput.h"			// DirectInput関連のヘッダー
+#include "xaudio2.h"		// XAudio2関連のヘッダー !!!
 
 
 //*****************************************************************************
-// ���C�u�����̃����N
+// ライブラリのリンク
 //*****************************************************************************
-#if 1	// [������"0"�ɂ����ꍇ�A"�\���v���p�e�B" -> "�����J" -> "����" -> "�ǉ��̈ˑ��t�@�C��"�ɑΏۃ��C�u������ݒ肷��]
+#if 1	// [ここを"0"にした場合、"構成プロパティ" -> "リンカ" -> "入力" -> "追加の依存ファイル"に対象ライブラリを設定する]
 #pragma comment (lib, "d3d9.lib")
 #pragma comment (lib, "d3dx9.lib")
 #pragma comment (lib, "dinput8.lib")
@@ -36,49 +36,62 @@
 #endif
 
 //*****************************************************************************
-// �}�N����`
+// マクロ定義
 //*****************************************************************************
-// �Q�c�|���S�����_�t�H�[�}�b�g( ���_���W[2D] / ���ˌ� / �e�N�X�`�����W )
+// ２Ｄポリゴン頂点フォーマット( 頂点座標[2D] / 反射光 / テクスチャ座標 )
 #define	FVF_VERTEX_2D	(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1)
-// �R�c�|���S�����_�t�H�[�}�b�g( ���_���W[3D] / �@�� / ���ˌ� / �e�N�X�`�����W )
+// ３Ｄポリゴン頂点フォーマット( 頂点座標[3D] / 法線 / 反射光 / テクスチャ座標 )
 #define	FVF_VERTEX_3D	(D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_DIFFUSE | D3DFVF_TEX1)
 
-#define SCREEN_WIDTH	(1280)				// �E�C���h�E�̕�
-#define SCREEN_HEIGHT	(720)				// �E�C���h�E�̍���
-#define SCREEN_CENTER_X	(SCREEN_WIDTH / 2)	// �E�C���h�E�̒��S�w���W
-#define SCREEN_CENTER_Y	(SCREEN_HEIGHT / 2)	// �E�C���h�E�̒��S�x���W
+#define SCREEN_WIDTH	(1280)				// ウインドウの幅
+#define SCREEN_HEIGHT	(720)				// ウインドウの高さ
+#define SCREEN_CENTER_X	(SCREEN_WIDTH / 2)	// ウインドウの中心Ｘ座標
+#define SCREEN_CENTER_Y	(SCREEN_HEIGHT / 2)	// ウインドウの中心Ｙ座標
 
-#define	NUM_VERTEX		(4)		// ���_��
-#define	NUM_POLYGON		(2)		// �|���S����
+#define	NUM_VERTEX		(4)		// 頂点数
+#define	NUM_POLYGON		(2)		// ポリゴン数
 
 #define SAFE_RELEASE(ptr)		{ if(ptr) { (ptr)->Release(); (ptr) = NULL; } }//!!!
 
-// ��L�Q�c�|���S�����_�t�H�[�}�b�g�ɍ��킹���\���̂��`
+// 上記２Ｄポリゴン頂点フォーマットに合わせた構造体を定義
 typedef struct
 {
-	D3DXVECTOR3 vtx;		// ���_���W
-	float rhw;				// �e�N�X�`���̃p�[�X�y�N�e�B�u�R���N�g�p
-	D3DCOLOR diffuse;		// ���ˌ�
-	D3DXVECTOR2 tex;		// �e�N�X�`�����W
+	D3DXVECTOR3 vtx;		// 頂点座標
+	float rhw;				// テクスチャのパースペクティブコレクト用
+	D3DCOLOR diffuse;		// 反射光
+	D3DXVECTOR2 tex;		// テクスチャ座標
 } VERTEX_2D;
 
-// ��L�R�c�|���S�����_�t�H�[�}�b�g�ɍ��킹���\���̂��`
+// 上記３Ｄポリゴン頂点フォーマットに合わせた構造体を定義
 typedef struct
 {
-	D3DXVECTOR3 vtx;		// ���_���W
-	D3DXVECTOR3 nor;		// �@���x�N�g��
-	D3DCOLOR diffuse;		// ���ˌ�
-	D3DXVECTOR2 tex;		// �e�N�X�`�����W
+	D3DXVECTOR3 vtx;		// 頂点座標
+	D3DXVECTOR3 nor;		// 法線ベクトル
+	D3DCOLOR diffuse;		// 反射光
+	D3DXVECTOR2 tex;		// テクスチャ座標
 } VERTEX_3D;
-
+typedef struct
+{
+	D3DXVECTOR3 pos;		// 位置
+	D3DXVECTOR3 rot;		// 回転
+	D3DXVECTOR3 scale;		// スケール
+	D3DXVECTOR3 move;		// 移動量
+	D3DXCOLOR col;			// 色
+	float fSizeX;			// 幅
+	float fSizeY;			// 高さ
+	int nIdxShadow;			// 影ID
+	int nLife;				// 寿命
+	bool bUse;				// 使用しているかどうか
+	int	g_nAlpha;           // アルファテストの閾値
+} PARTICLE;
 //*************************************
-// ���[�h�̎��
+// モードの種類
 //*************************************
 typedef enum				//!!!
 {
-	MODE_TITLE = 0,			// �^�C�g�����
-	MODE_GAME,				// �Q�[�����
-	MODE_RESULT,			// ���U���g���
+	MODE_TITLE = 0,			// タイトル画面
+	MODE_GAME,				// ゲーム画面
+	MODE_RESULT,			// リザルト画面
 	MODE_MAX
 } MODE;
 
@@ -98,13 +111,13 @@ enum CAMERA_MODE
 
 enum PLAY_MODE
 {
-	PLAY_MODE_SINGLE,//��̃v���C���[
-	PLAY_MODE_DOUBLE,//��̃v���C���[
+	PLAY_MODE_SINGLE,//一つのプレイヤー
+	PLAY_MODE_DOUBLE,//二つのプレイヤー
 	PLAY_MODE_MAX
 };
 
 //*****************************************************************************
-// �v���g�^�C�v�錾
+// プロトタイプ宣言
 //*****************************************************************************
 LPDIRECT3DDEVICE9 GetDevice(void);
 void SetMode(MODE mode);

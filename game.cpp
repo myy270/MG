@@ -1,7 +1,7 @@
-//=============================================================================
+ï»¿//=============================================================================
 //
-// ƒQ[ƒ€‰æ–Êˆ— [game.cpp]
-// Author : ”ž‰p‰j
+// ã‚²ãƒ¼ãƒ ç”»é¢å‡¦ç† [game.cpp]
+// Author : éº¦è‹±æ³³
 //
 //=============================================================================
 #include "game.h"
@@ -20,78 +20,79 @@
 #include "score.h"
 #include "item.h"
 #include "sound.h"
+#include "kiri.h"
 
 //*****************************************************************************
-// ƒ}ƒNƒ’è‹`
+// ãƒžã‚¯ãƒ­å®šç¾©
 //*****************************************************************************
-#define TIMESET			(999)	//ƒ^ƒCƒ}[‚ÌŽžŠÔ
+#define TIMESET			(999)	//ã‚¿ã‚¤ãƒžãƒ¼ã®æ™‚é–“
 
 //*****************************************************************************
-// ƒvƒƒgƒ^ƒCƒvéŒ¾
+// ãƒ—ãƒ­ãƒˆã‚¿ã‚¤ãƒ—å®£è¨€
 //*****************************************************************************
 
 //*****************************************************************************
-// ƒOƒ[ƒoƒ‹•Ï”
+// ã‚°ãƒ­ãƒ¼ãƒãƒ«å¤‰æ•°
 //*****************************************************************************
 
 
 //=============================================================================
-// ‰Šú‰»ˆ—
+// åˆæœŸåŒ–å‡¦ç†
 //=============================================================================
 HRESULT InitGame(void)
 {
-	// ƒ‰ƒCƒg‚Ì‰Šú‰»
+	// ãƒ©ã‚¤ãƒˆã®åˆæœŸåŒ–
 	InitLight();
 
-	// ƒJƒƒ‰‚Ì‰Šú‰»
+	// ã‚«ãƒ¡ãƒ©ã®åˆæœŸåŒ–
 	InitCamera();
-
-	// ’n–Ê‚Ì‰Šú‰»
+	//InitKiri();
+	// åœ°é¢ã®åˆæœŸåŒ–
 	InitMeshField(D3DXVECTOR3(0.0f, 0.0f, 0.0f), D3DXVECTOR3(0.0f, 0.0f, 0.0f), 16, 16, 80.0f, 80.0f);//1280*1280
 
-	// •Ç‚Ì‰Šú‰» 
+	// å£ã®åˆæœŸåŒ– 
 
-	//–k•Ç‚Ì’n–Ê
+	//åŒ—å£ã®åœ°é¢
 	InitMeshWall(D3DXVECTOR3(0.0f, 0.0f, 640.0f), D3DXVECTOR3(D3DX_PI * 0.50f, 0.0f, 0.0f),
 									D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), 48, 16, 80.0f, 80.0f);
-	//“ì•Ç‚Ì’n–Ê
+	//å—å£ã®åœ°é¢
 	InitMeshWall(D3DXVECTOR3(0.0f, 0.0f, -640.0f), D3DXVECTOR3(D3DX_PI * 0.50f, D3DX_PI, 0.0f),
 									D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), 48, 16, 80.0f, 80.0f);
-	//¼•Ç‚Ì’n–Ê@”½ŽžŒv‰ñ“]90“x
+	//è¥¿å£ã®åœ°é¢ã€€åæ™‚è¨ˆå›žè»¢90åº¦
 	InitMeshWall(D3DXVECTOR3(-640.0f, 0.0f, 0.0f), D3DXVECTOR3(D3DX_PI * 0.50f, 0.0f, D3DX_PI * 0.50f),
 									D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), 16, 16, 80.0f, 80.0f);
-	//“Œ•Ç‚Ì’n–Ê@ŽžŒv‰ñ“]90“x
+	//æ±å£ã®åœ°é¢ã€€æ™‚è¨ˆå›žè»¢90åº¦
 	InitMeshWall(D3DXVECTOR3(640.0f, 0.0f, 0.0f), D3DXVECTOR3(D3DX_PI * 0.50f, D3DX_PI * 0.50f, 0.0f),
 									D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), 16, 16, 80.0f, 80.0f);
 
-	//–k•Ç
+	//åŒ—å£
 	InitMeshWall(D3DXVECTOR3(0.0f, 0.0f, 640.0f), D3DXVECTOR3(0.0f, 0.0f, 0.0f),
 									D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), 16, 2, 80.0f, 80.0f);
-	//“ì•Ç@ŽžŒv‰ñ“]180“x
+	//å—å£ã€€æ™‚è¨ˆå›žè»¢180åº¦
 	InitMeshWall(D3DXVECTOR3(0.0f, 0.0f, -640.0f), D3DXVECTOR3(0.0f, D3DX_PI, 0.0f),
 									D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), 16, 2, 80.0f, 80.0f);
-	//¼•Ç@”½ŽžŒv‰ñ“]90“x
+	//è¥¿å£ã€€åæ™‚è¨ˆå›žè»¢90åº¦
 	InitMeshWall(D3DXVECTOR3(-640.0f, 0.0f, 0.0f), D3DXVECTOR3(0.0f, -D3DX_PI * 0.50f, 0.0f),
 									D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), 16, 2, 80.0f, 80.0f);
-	//“Œ•Ç@ŽžŒv‰ñ“]90“x
+	//æ±å£ã€€æ™‚è¨ˆå›žè»¢90åº¦
 	InitMeshWall(D3DXVECTOR3(640.0f, 0.0f, 0.0f), D3DXVECTOR3(0.0f, D3DX_PI * 0.50f, 0.0f),
 									D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f), 16, 2, 80.0f, 80.0f);
 
 
-	//–k•Ç‚Ì‰®ã
+	//åŒ—å£ã®å±‹ä¸Š
 	InitMeshWall(D3DXVECTOR3(0.0f, 160.0f, 640.0f), D3DXVECTOR3(D3DX_PI * 0.50f, 0.0f, 0.0f),
 									D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.5f), 48, 16, 80.0f, 80.0f);
-	////“ì•Ç‚Ì‰®ã
+	////å—å£ã®å±‹ä¸Š
 	InitMeshWall(D3DXVECTOR3(0.0f, 160.0f, -640.0f), D3DXVECTOR3(D3DX_PI * 0.50f, D3DX_PI, 0.0f),
 									D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.5f), 48, 16, 80.0f, 80.0f);
-	////¼•Ç‚Ì‰®ã@”½ŽžŒv‰ñ“]90“x
+	////è¥¿å£ã®å±‹ä¸Šã€€åæ™‚è¨ˆå›žè»¢90åº¦
 	InitMeshWall(D3DXVECTOR3(-640.0f, 160.0f, 0.0f), D3DXVECTOR3(D3DX_PI * 0.50f, 0.0f, D3DX_PI * 0.50f),
 									D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.5f), 16, 16, 80.0f, 80.0f);
-	////“Œ•Ç‚Ì‰®ã@ŽžŒv‰ñ“]90“x
+	////æ±å£ã®å±‹ä¸Šã€€æ™‚è¨ˆå›žè»¢90åº¦
 	InitMeshWall(D3DXVECTOR3(640.0f, 160.0f, 0.0f), D3DXVECTOR3(D3DX_PI * 0.50f, D3DX_PI * 0.50f, 0.0f),
 									D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.5f), 16, 16, 80.0f, 80.0f);
 
-	//•Ç(— ‘¤—p)
+	//å£(è£å´ç”¨)
 	InitMeshWall(D3DXVECTOR3(0.0f, 0.0f, 640.0f), D3DXVECTOR3(0.0f, D3DX_PI, 0.0f),
 									D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.25f), 16, 2, 80.0f, 80.0f);
 	InitMeshWall(D3DXVECTOR3(-640.0f, 0.0f, 0.0f), D3DXVECTOR3(0.0f, D3DX_PI * 0.50f, 0.0f),
@@ -101,34 +102,34 @@ HRESULT InitGame(void)
 	InitMeshWall(D3DXVECTOR3(0.0f, 0.0f, -640.0f), D3DXVECTOR3(0.0f, 0.0f, 0.0f),
 									D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.25f), 16, 2, 80.0f, 80.0f);
 
-	// ‰e‚Ì‰Šú‰»
+	// å½±ã®åˆæœŸåŒ–
 	InitShadow();
 
-	// ƒvƒŒƒCƒ„[‚Ì‰Šú‰»
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®åˆæœŸåŒ–
 	InitPlayer();
 
 	InitEnemy();
 
-	// ’e‚Ì‰Šú‰»
+	// å¼¾ã®åˆæœŸåŒ–
 	InitBullet();
 
-	// ”š”­‚Ì‰Šú‰»
+	// çˆ†ç™ºã®åˆæœŸåŒ–
 	InitExplosion();
 
-	// ƒGƒtƒFƒNƒg‚Ì‰Šú‰»
+	// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã®åˆæœŸåŒ–
 	InitEffect();
 
-	// ƒ‰ƒCƒt‚Ì‰Šú‰»
+	// ãƒ©ã‚¤ãƒ•ã®åˆæœŸåŒ–
 	InitLife();
 
-	// ƒ^ƒCƒ}[‚Ì‰Šú‰»
+	// ã‚¿ã‚¤ãƒžãƒ¼ã®åˆæœŸåŒ–
 	InitTimer();
 	ResetTimer(TIMESET);
 
-	// ƒXƒRƒA‚Ì‰Šú‰»
+	// ã‚¹ã‚³ã‚¢ã®åˆæœŸåŒ–
 	InitScore();
 
-	// ƒAƒCƒeƒ€‚Ì‰Šú‰»
+	// ã‚¢ã‚¤ãƒ†ãƒ ã®åˆæœŸåŒ–
 	InitItem();
 	for(int nCntCoin = 0; nCntCoin < 99; nCntCoin++)
 	{
@@ -141,152 +142,152 @@ HRESULT InitGame(void)
 		SetItem(D3DXVECTOR3(fPosX, fPosY, fPosZ),  D3DXVECTOR3(0.0f, 0.0f, 0.0f), ITEMTYPE_COIN, true);
 	}
 
-	// BGMÄ¶ ‚¿‚á‚ñ‚Æloop‚Å‚«‚é‚É‚·‚é!@Œ³‚Ìã©
+	// BGMå†ç”Ÿ ã¡ã‚ƒã‚“ã¨loopã§ãã‚‹ã«ã™ã‚‹!ã€€å…ƒã®ç½ 
 	PlaySound(SOUND_LABEL_BGM000, XAUDIO2_LOOP_INFINITE);
 
 	return S_OK;
 }
 
 //=============================================================================
-// I—¹ˆ—
+// çµ‚äº†å‡¦ç†
 //=============================================================================
 void UninitGame(void)
 {
-	// ƒ‰ƒCƒg‚ÌI—¹ˆ—
+	// ãƒ©ã‚¤ãƒˆã®çµ‚äº†å‡¦ç†
 	UninitLight();
 
-	// ƒJƒƒ‰‚ÌI—¹ˆ—
+	// ã‚«ãƒ¡ãƒ©ã®çµ‚äº†å‡¦ç†
 	UninitCamera();
 
-	// ’n–Ê‚ÌI—¹ˆ—
+	// åœ°é¢ã®çµ‚äº†å‡¦ç†
 	UninitMeshField();
 
-	// •Ç‚ÌI—¹ˆ—
+	// å£ã®çµ‚äº†å‡¦ç†
 	UninitMeshWall();
 
-	// ‰e‚ÌI—¹ˆ—
+	// å½±ã®çµ‚äº†å‡¦ç†
 	UninitShadow();
 
-	// ƒvƒŒƒCƒ„[‚ÌI—¹ˆ—
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®çµ‚äº†å‡¦ç†
 	UninitPlayer();
 
 	UninitEnemy();
 
-	// ’e‚ÌI—¹ˆ—
+	// å¼¾ã®çµ‚äº†å‡¦ç†
 	UninitBullet();
 
-	// ”š”­‚ÌI—¹ˆ—
+	// çˆ†ç™ºã®çµ‚äº†å‡¦ç†
 	UninitExplosion();
 
-	// ƒGƒtƒFƒg‚ÌI—¹ˆ—
+	// ã‚¨ãƒ•ã‚§ãƒˆã®çµ‚äº†å‡¦ç†
 	UninitEffect();
 
-	// ƒ‰ƒCƒt‚ÌI—¹ˆ—
+	// ãƒ©ã‚¤ãƒ•ã®çµ‚äº†å‡¦ç†
 	UninitLife();
 
-	// ƒ^ƒCƒ}[‚ÌI—¹ˆ—
+	// ã‚¿ã‚¤ãƒžãƒ¼ã®çµ‚äº†å‡¦ç†
 	UninitTimer();
 
-	// ƒXƒRƒA‚ÌI—¹ˆ—
+	// ã‚¹ã‚³ã‚¢ã®çµ‚äº†å‡¦ç†
 	UninitScore();
 
-	// ƒAƒCƒeƒ€‚ÌI—¹ˆ—
+	// ã‚¢ã‚¤ãƒ†ãƒ ã®çµ‚äº†å‡¦ç†
 	UninitItem();
 
-	// BGM’âŽ~ !!Œ³‚Ìã©
+	// BGMåœæ­¢ !!å…ƒã®ç½ 
 	StopSound(SOUND_LABEL_BGM000);
 }
 
 //=============================================================================
-// XVˆ—
+// æ›´æ–°å‡¦ç†
 //=============================================================================
 void UpdateGame(void)
 {
-	// ƒ‰ƒCƒgˆ—‚ÌXV
+	// ãƒ©ã‚¤ãƒˆå‡¦ç†ã®æ›´æ–°
 	UpdateLight();
 
-	// ƒJƒƒ‰ˆ—‚ÌXV
+	// ã‚«ãƒ¡ãƒ©å‡¦ç†ã®æ›´æ–°
 	UpdateCamera();
 
-	// ’n–Êˆ—‚ÌXV
+	// åœ°é¢å‡¦ç†ã®æ›´æ–°
 	UpdateMeshField();
 
-	// •Çˆ—‚ÌXV
+	// å£å‡¦ç†ã®æ›´æ–°
 	UpdateMeshWall();
 
-	// ‰eˆ—‚ÌXV
+	// å½±å‡¦ç†ã®æ›´æ–°
 	UpdateShadow();
 
-	// ƒvƒŒƒCƒ„[ˆ—‚ÌXV
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å‡¦ç†ã®æ›´æ–°
 	UpdatePlayer();
 
 	UpdateEnemy();
 
-	// ’eˆ—‚ÌXV
+	// å¼¾å‡¦ç†ã®æ›´æ–°
 	UpdateBullet();
 
-	// ”š”­ˆ—‚ÌXV
+	// çˆ†ç™ºå‡¦ç†ã®æ›´æ–°
 	UpdateExplosion();
 
-	// ƒGƒtƒFƒNƒgˆ—‚ÌXV
+	// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆå‡¦ç†ã®æ›´æ–°
 	UpdateEffect();
 
-	// ƒ‰ƒCƒtˆ—‚ÌXV
+	// ãƒ©ã‚¤ãƒ•å‡¦ç†ã®æ›´æ–°
 	UpdateLife();
 
-	// ƒ^ƒCƒ}[ˆ—‚ÌXV
+	// ã‚¿ã‚¤ãƒžãƒ¼å‡¦ç†ã®æ›´æ–°
 	UpdateTimer();
 
-	// ƒXƒRƒAˆ—‚ÌXV
+	// ã‚¹ã‚³ã‚¢å‡¦ç†ã®æ›´æ–°
 	UpdateScore();
 
-	// ƒAƒCƒeƒ€ˆ—‚ÌXV
+	// ã‚¢ã‚¤ãƒ†ãƒ å‡¦ç†ã®æ›´æ–°
 	UpdateItem();
 
 
 }
 
 //=============================================================================
-// •`‰æˆ— •`‰æ‡’ˆÓ
+// æç”»å‡¦ç† æç”»é †æ³¨æ„
 //=============================================================================
 void DrawGame(void)
 {
-	// ƒJƒƒ‰‚ÌÝ’è
+	// ã‚«ãƒ¡ãƒ©ã®è¨­å®š
 	SetCamera();
 
-	// ’n–Êˆ—‚Ì•`‰æ
+	// åœ°é¢å‡¦ç†ã®æç”»
 	DrawMeshField();
 
-	// ‰eˆ—‚Ì•`‰æ
+	// å½±å‡¦ç†ã®æç”»
 	DrawShadow();
 
-	// ƒvƒŒƒCƒ„[ˆ—‚Ì•`‰æ
+	// ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼å‡¦ç†ã®æç”»
 	DrawPlayer();
 
 	DrawEnemy();
 
-	// ƒAƒCƒeƒ€ˆ—‚Ì•`‰æ
+	// ã‚¢ã‚¤ãƒ†ãƒ å‡¦ç†ã®æç”»
 	DrawItem();
 
-	// ’eˆ—‚Ì•`‰æ
+	// å¼¾å‡¦ç†ã®æç”»
 	DrawBullet();
 
-	// ƒGƒtƒFƒNƒgˆ—‚Ì•`‰æ
+	// ã‚¨ãƒ•ã‚§ã‚¯ãƒˆå‡¦ç†ã®æç”»
 	DrawEffect();
 
-	// •Çˆ—‚Ì•`‰æ
+	// å£å‡¦ç†ã®æç”»
 	DrawMeshWall();
 
-	// ”š”­ˆ—‚Ì•`‰æ
+	// çˆ†ç™ºå‡¦ç†ã®æç”»
 	DrawExplosion();
 
-	// ƒ‰ƒCƒtˆ—‚Ì•`‰æ
+	// ãƒ©ã‚¤ãƒ•å‡¦ç†ã®æç”»
 	//DrawLife();
 
-	// ƒ^ƒCƒ}[ˆ—‚Ì•`‰æ
+	// ã‚¿ã‚¤ãƒžãƒ¼å‡¦ç†ã®æç”»
 	DrawTimer();
 
-	// ƒXƒRƒAˆ—‚Ì•`‰æ
+	// ã‚¹ã‚³ã‚¢å‡¦ç†ã®æç”»
 	DrawScore();
 }
 
