@@ -6,11 +6,11 @@
 //=============================================================================
 #include "main.h"
 #include "input.h"
-//#include "title.h"
+#include "title.h"
 #include "game.h"
-//#include "result.h"
+#include "result.h"
 #include "fade.h"
-//#include "sound.h"
+#include "sound.h"
 #include "player.h"
 #include "debugproc.h"
 //*****************************************************************************
@@ -41,8 +41,8 @@ LPDIRECT3DDEVICE9	g_pD3DDevice = NULL;	// Deviceオブジェクト(描画に必要)
 #ifdef _DEBUG
 int					g_nCountFPS;			// FPSカウンタ
 #endif
-MODE				g_mode = MODE_GAME;	// モード
-int					g_next_stage;
+MODE				g_mode = MODE_TITLE;	// モード
+//int					g_next_stage;
 STAGE_CLEAR g_stage_clear;
 
 int rest;			//ポーズのスイッチ
@@ -319,7 +319,7 @@ HRESULT Init(HINSTANCE hInstance, HWND hWnd, BOOL bWindow)
 	InitFade();
 
 	//// サウンドの初期化
-	//InitSound(hWnd);
+	InitSound(hWnd);
 
 	// 最初はタイトル画面に
 	SetMode(g_mode);
@@ -344,15 +344,15 @@ void Uninit(void)
 		g_pD3D = NULL;
 	}
 
-	//UninitTitle();
+	UninitTitle();
 	UninitGame();
-	//UninitResult();
+	UninitResult();
 
 	// フェードの終了処理
 	UninitFade();
 
 	// サウンドの終了処理
-	//UninitSound();
+	UninitSound();
 
 	// 入力処理の終了処理
 	UninitInput();
@@ -378,19 +378,20 @@ void Update(void)
 	switch(g_mode)
 	{
 	case MODE_TITLE:		// タイトル画面の更新
-		//UpdateTitle();
+		UpdateTitle();
 		break;
 
 	case MODE_GAME:			// ゲーム画面の更新
+	case STAGE01:
 		UpdateGame();
 
 		break;
 
 	case MODE_RESULT:		// リザルト画面の更新
 
-		//UpdateGame();		//ゲーム画面を保持する
+		UpdateGame();		//ゲーム画面を保持する
 
-		//UpdateResult();	
+		UpdateResult();	
 		break;
 	}
 
@@ -412,18 +413,22 @@ void Draw(void)
 		switch(g_mode)
 		{
 		case MODE_TITLE:		// タイトル画面の描画
-			//DrawTitle();
+			DrawTitle();
 			break;
 
-		case MODE_GAME:			// ゲーム画面の描画
+		case MODE_GAME:			// 星フィールド
+		case STAGE01:			//白虎の部屋
 			DrawGame();
 			break;
 
+		
+
+
 		case MODE_RESULT:		// リザルト画面の描画
 
-			//DrawGame();			//ゲーム画面を保持する
+			DrawGame();			//ゲーム画面を保持する
 
-			//DrawResult();
+			DrawResult();
 			break;
 		}
 
@@ -460,19 +465,20 @@ void SetMode(MODE mode)
 	{
 	case MODE_TITLE:
 		// リザルト画面の終了処理
-		//UninitResult();
+		UninitResult();
 
 		// タイトル画面の初期化
-		//InitTitle();
+		InitTitle();
 
 		// ゲーム画面の終了処理
-		//UninitGame();
+		UninitGame();
 
 		break;
 
-	case MODE_GAME:
+	case MODE_GAME:					//星形のフィールド
+	case STAGE01:					//白虎の部屋	
 		// タイトル画面の終了処理
-		//UninitTitle();
+		UninitTitle();
 
 		// ゲーム画面の初期化
 		InitGame();
@@ -480,11 +486,9 @@ void SetMode(MODE mode)
 		break;
 
 	case MODE_RESULT:
-		// ゲーム画面の終了処理
-		//UninitGame();
 
 		// リザルト画面の初期化
-		//InitResult();
+		InitResult();
 
 		break;
 	}

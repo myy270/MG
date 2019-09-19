@@ -33,6 +33,8 @@ void SetTextureScore(int idx, int number);// 敵の
 HRESULT MakeVertexScore2(LPDIRECT3DDEVICE9 pDevice);// プレイヤーの
 void SetTextureScore2(int idx, int number);// プレイヤーの
 
+
+
 //*****************************************************************************
 // グローバル変数宣言
 //*****************************************************************************
@@ -438,6 +440,7 @@ void compScore()
 
 	}
 
+	
 }
 
 OBJECT GetWinner()

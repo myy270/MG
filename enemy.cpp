@@ -54,7 +54,9 @@ int AI3();
 //*****************************************************************************
 LPDIRECT3DTEXTURE9	g_pD3DTextureEnemy;		// テクスチャ読み込み場所
 ENEMY				g_enemy;					// エネミーワーク
+
 extern MODEL FieldStar[NUM_FIELD];
+//extern int g_next_stage;
 
 static int g_conId = 0;//コントロールID
  
@@ -254,7 +256,7 @@ HRESULT InitEnemy(void)
 
 	if (GetPlayMode() == PLAY_MODE_SINGLE)
 	{
-		g_ai = false;
+		g_ai = true;
 	}
 	else if (GetPlayMode() == PLAY_MODE_DOUBLE)
 	{
@@ -441,7 +443,11 @@ void UpdateEnemy(void)
 
 	if (g_ai)
 	{
-		AI3();
+		if (GetMode() == STAGE01)
+		{
+			AI3();
+		}
+		
 	}
 	
 
@@ -557,7 +563,7 @@ void UpdateEnemy(void)
 		}
 
 		//壁の当たり判定
-		g_enemy.move = CollideGeo(&g_enemy.part->srt.pos, g_enemy.move, &FieldStar[0].model3d.pMesh);
+		//g_enemy.move = CollideGeo(&g_enemy.part->srt.pos, g_enemy.move, &FieldStar[0].model3d.pMesh);
 		//(SRT* m_A, SRT* m_B, D3DXVECTOR3 move, PART* pThingB3D);
 
 		/// 位置移動を反映

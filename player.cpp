@@ -10,6 +10,10 @@
 #include "debugproc.h"
 #include "hitjudge.h"
 #include "enemy.h"
+#include "score.h"
+#include "timer.h"
+#include "sound.h"
+#include "field_star.h"
 
 //*****************************************************************************
 // マクロ定義
@@ -23,6 +27,7 @@
 #define	LEG_R_PLAYER		"data/mere god/leg_R.x"	// 読み込むモデル名
 
 #define	SWORD_PLAYER	"data/mere god/sword.x"		// 読み込むモデル名
+#define	ICE_BLOCK		"data/MODEL/iceBlock.x"		// 読み込むモデル名
 
 #define	TEXTURE_PLAYER	"data/mere god/knight.png"		// 読み込むモデル名
 #define	TEXTURE_SWORD	"data/mere god/kenn.png"		// 読み込むモデル名
@@ -35,7 +40,7 @@
 #define	VALUE_ROTATE_PLAYER	(D3DX_PI * 0.025f)			// 回転速度 4.5度
 #define	RATE_ROTATE_PLAYER	(0.10f)						// 回転慣性係数
 
-
+//extern int g_next_stage;
 extern HWND hWnd;
 //*****************************************************************************
 // プロトタイプ宣言
@@ -56,7 +61,9 @@ PLAYER				g_player;					// プレイヤーワーク
 D3DXMATRIX mtxWorld;
 extern ENEMY g_enemy;
 
-int g_mode = MODE_INGAME;//編輯モードかどうか
+extern MODEL FieldStar[NUM_FIELD];
+
+int g_modePlayer = MODE_INGAME;//編輯モードかどうか
 
 int g_conId = 0;	//デフォルトのコントロールID
 
@@ -1035,6 +1042,7 @@ HRESULT InitPlayer(void)
 	g_player.part[5].partFile = (char *)LEG_R_PLAYER;//右足
 
 	g_player.part[6].partFile = (char *)SWORD_PLAYER;//右手の剣
+	g_player.part[7].partFile = (char *)ICE_BLOCK;//氷
 
 	for (int i = 0; i < PART_MAX; i++)//パーツ番号
 	{
@@ -1067,7 +1075,7 @@ HRESULT InitPlayer(void)
 		{//頭
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
 			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 7.06f,  0.09f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 7.06f, 0.09f);
 
 			g_player.part[i].parent = &g_player.part[0];//体を親にする
 			break;
@@ -1111,16 +1119,34 @@ HRESULT InitPlayer(void)
 		case 6:
 		{//右手の剣
 			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
-			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);	
+			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
 			g_player.part[i].srt.pos = D3DXVECTOR3(-0.92f, -7.19f, -0.79f);	//ここの数値要注意、特にｚの符号
 
 			g_player.part[i].parent = &g_player.part[3];//右手を親にする！！
 			break;
 		}
 
+		default:
+		{
+			g_player.part[i].srt.scl = D3DXVECTOR3(1.0f, 1.0f, 1.0f);
+			g_player.part[i].srt.rot = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+			g_player.part[i].srt.pos = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+
+			g_player.part[i].parent = &g_player.part[0];//体を親にする
+			break;
 		}
 
-		g_player.part[i].use = true;
+
+		}
+
+		if (i != ICE)
+		{
+			g_player.part[i].use = true;
+		}
+		else
+		{
+			g_player.part[i].use = false;
+		}
 
 	}
 
@@ -1130,6 +1156,7 @@ HRESULT InitPlayer(void)
 
 	g_player.state = NORMAL;
 	
+	g_player.holdItem = ITEMTYPE_COIN;
 
 #if 1
 	// テクスチャの読み込み
@@ -1186,15 +1213,15 @@ void UpdatePlayer(void)
 	//モードの入力
 	if (GetKeyboardPress(DIK_1))
 	{
-		g_mode = MODE_PLAY;
+		g_modePlayer = MODE_PLAY;
 	}
 	if (GetKeyboardPress(DIK_2))
 	{
-		g_mode = MODE_EDIT;
+		g_modePlayer = MODE_EDIT;
 	}
 	if (GetKeyboardPress(DIK_3))
 	{
-		g_mode = MODE_INGAME;
+		g_modePlayer = MODE_INGAME;
 	}
 
 
@@ -1235,7 +1262,7 @@ void UpdatePlayer(void)
 
 
 
-	switch (g_mode)
+	switch (g_modePlayer)
 	{
 	case MODE_PLAY:
 	{
@@ -1373,78 +1400,84 @@ void UpdatePlayer(void)
 
 		g_animeState = 0;//運動状態をリセット
 
+		if ((GetTimeOut() == 0) && (g_player.state != FROZEN))
+		{//移動
+
 		//移動
-		if (GetKeyboardPress(DIK_A) || IsButtonPress(0, BUTTON_LEFT) || IsButtonPress(0, BUTTON_LSTICK_LEFT))
-		{
-			g_animeState = 1;//動く状態にする
+			if (GetKeyboardPress(DIK_A) || IsButtonPress(0, BUTTON_LEFT) || IsButtonPress(0, BUTTON_LSTICK_LEFT))
+			{
+				g_animeState = 1;//動く状態にする
 
-			if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
-			{// 左前移動
-				g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
-				g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
+				if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
+				{// 左前移動
+					g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
+					g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
 
-				g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.75f;
+					g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.75f;
+				}
+				else if (GetKeyboardPress(DIK_S) || IsButtonPress(0, BUTTON_DOWN) || IsButtonPress(0, BUTTON_LSTICK_DOWN))
+				{// 左後移動
+					g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
+					g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
+
+					g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.25f;
+				}
+				else
+				{// 左移動
+					g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
+					g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
+
+					g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.50f;
+				}
+			}
+			else if (GetKeyboardPress(DIK_D) || IsButtonPress(0, BUTTON_RIGHT) || IsButtonPress(0, BUTTON_LSTICK_RIGHT))
+			{
+				g_animeState = 1;//動く状態にする
+
+				if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
+				{// 右前移動
+					g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
+					g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
+
+					g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.75f;
+				}
+				else if (GetKeyboardPress(DIK_S) || IsButtonPress(0, BUTTON_DOWN) || IsButtonPress(0, BUTTON_LSTICK_DOWN))
+				{// 右後移動
+					g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
+					g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
+
+					g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.25f;
+				}
+				else
+				{// 右移動
+					g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
+					g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
+
+					g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.50f;
+				}
+			}
+			else if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
+			{
+				g_animeState = 1;//動く状態にする
+
+				// 前移動
+				g_player.move.x -= sinf(D3DX_PI + rotCamera.y) * VALUE_MOVE_PLAYER;
+				g_player.move.z -= cosf(D3DX_PI + rotCamera.y) * VALUE_MOVE_PLAYER;
+
+				g_player.rotDest.y = D3DX_PI + rotCamera.y;
 			}
 			else if (GetKeyboardPress(DIK_S) || IsButtonPress(0, BUTTON_DOWN) || IsButtonPress(0, BUTTON_LSTICK_DOWN))
-			{// 左後移動
-				g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
-				g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
+			{
+				g_animeState = 1;//動く状態にする
 
-				g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.25f;
+				// 後移動
+				g_player.move.x -= sinf(rotCamera.y) * VALUE_MOVE_PLAYER;
+				g_player.move.z -= cosf(rotCamera.y) * VALUE_MOVE_PLAYER;
+
+				g_player.rotDest.y = rotCamera.y;
 			}
-			else
-			{// 左移動
-				g_player.move.x -= sinf(rotCamera.y + D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
-				g_player.move.z -= cosf(rotCamera.y + D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
 
-				g_player.rotDest.y = rotCamera.y + D3DX_PI * 0.50f;
-			}
-		}
-		else if (GetKeyboardPress(DIK_D) || IsButtonPress(0, BUTTON_RIGHT) || IsButtonPress(0, BUTTON_LSTICK_RIGHT))
-		{
-			g_animeState = 1;//動く状態にする
-
-			if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
-			{// 右前移動
-				g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
-				g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.75f) * VALUE_MOVE_PLAYER;
-
-				g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.75f;
-			}
-			else if (GetKeyboardPress(DIK_S) || IsButtonPress(0, BUTTON_DOWN) || IsButtonPress(0, BUTTON_LSTICK_DOWN))
-			{// 右後移動
-				g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
-				g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.25f) * VALUE_MOVE_PLAYER;
-
-				g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.25f;
-			}
-			else
-			{// 右移動
-				g_player.move.x -= sinf(rotCamera.y - D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
-				g_player.move.z -= cosf(rotCamera.y - D3DX_PI * 0.50f) * VALUE_MOVE_PLAYER;
-
-				g_player.rotDest.y = rotCamera.y - D3DX_PI * 0.50f;
-			}
-		}
-		else if (GetKeyboardPress(DIK_W) || IsButtonPress(0, BUTTON_UP) || IsButtonPress(0, BUTTON_LSTICK_UP))
-		{
-			g_animeState = 1;//動く状態にする
-
-			// 前移動
-			g_player.move.x -= sinf(D3DX_PI + rotCamera.y) * VALUE_MOVE_PLAYER;
-			g_player.move.z -= cosf(D3DX_PI + rotCamera.y) * VALUE_MOVE_PLAYER;
-
-			g_player.rotDest.y = D3DX_PI + rotCamera.y;
-		}
-		else if (GetKeyboardPress(DIK_S) || IsButtonPress(0, BUTTON_DOWN) || IsButtonPress(0, BUTTON_LSTICK_DOWN))
-		{
-			g_animeState = 1;//動く状態にする
-
-			// 後移動
-			g_player.move.x -= sinf(rotCamera.y) * VALUE_MOVE_PLAYER;
-			g_player.move.z -= cosf(rotCamera.y) * VALUE_MOVE_PLAYER;
-
-			g_player.rotDest.y = rotCamera.y;
+			
 		}
 
 		if ((g_animeStateKen3 == 0) && (g_animeStateKen4 == 0))
@@ -1456,13 +1489,12 @@ void UpdatePlayer(void)
 		{
 			AnimeKen3(g_animeKen3);
 		}
-		
+
 		if (g_animeStateKen3 == 0)
 		{
 			AnimeKen4(g_animeKen4);
 		}
 
-		
 
 		AnimeKen(g_animeKen);
 
@@ -1487,6 +1519,12 @@ void UpdatePlayer(void)
 		{
 			g_player.part[0].srt.rot.y += D3DX_PI * 2.0f;
 		}
+
+		if (GetMode() == MODE_GAME)
+		{
+			g_player.move = CollideGeo(&g_player.part->srt.pos, g_player.move, &FieldStar[0].model3d.pMesh);
+		}
+		
 
 		// 位置移動を反映
 		g_player.part[0].srt.pos.x += g_player.move.x;//体に反映
@@ -1534,7 +1572,81 @@ void UpdatePlayer(void)
 
 	}//switch end
 
+		// アイテムとの当たり判定
+	{
+	ITEM *pItem;
 
+	// アイテムを取得
+	pItem = GetItem();
+
+	if (GetMode() != MODE_GAME)
+	{
+		for (int nCntItem = 0; nCntItem < MAX_ITEM; nCntItem++, pItem++)
+		{
+			if (pItem->bUse == true)
+			{
+				float fLength;
+
+				//バウンディングサークル BC //体を基準に
+				fLength = (g_player.part[0].srt.pos.x - pItem->pos.x) * (g_player.part[0].srt.pos.x - pItem->pos.x)
+					+ (g_player.part[0].srt.pos.y - pItem->pos.y) * (g_player.part[0].srt.pos.y - pItem->pos.y)
+					+ (g_player.part[0].srt.pos.z - pItem->pos.z) * (g_player.part[0].srt.pos.z - pItem->pos.z);
+				if (fLength < (g_player.fRadius + pItem->fRadius) * (g_player.fRadius + pItem->fRadius))
+				{
+					if (g_player.holdItem && (pItem->nType != ITEMTYPE_COIN))
+					{//アイテム持っている場合、ほかのアイテムを拾えない
+
+					}
+					else
+					{
+						if (pItem->nType == ITEMTYPE_ICEBLOCK)
+						{
+							g_player.holdItem = ITEMTYPE_ICEBLOCK;
+						}
+						else if (pItem->nType == ITEMTYPE_COIN)
+						{
+							// スコア加算
+							ChangeScore2(100);
+
+							// SE再生
+							PlaySound(SOUND_LABEL_SE_COIN);
+						}
+
+						// アイテム消去
+						DeleteItem(nCntItem);
+
+					}
+				}
+			}
+		}
+	}
+	}
+
+
+
+	if ((GetTimeOut() == 0) && (g_player.state != FROZEN))
+	{
+		if (GetKeyboardTrigger(DIK_SPACE) || IsButtonTrigger(0, BUTTON_CIRCLE))
+		{//凍結アイテムを使う
+			Freeze(OBJECT_ENEMY);
+		}
+	}
+
+	//凍結状態
+	if (g_player.state == FROZEN)
+	{
+		if (g_player.stateTime == 0)
+		{
+			g_player.state = NORMAL;
+			g_player.part[7].use = false;
+		}
+		else
+		{
+			g_player.stateTime--;
+			g_player.part[7].use = true;
+
+		}
+	}
 
 //運動情報を書き出す
 #ifdef _DEBUG
@@ -1544,7 +1656,7 @@ void UpdatePlayer(void)
 	}
 #endif
 
-	PrintDebugProc("編輯モード：%d \n\n", g_mode);
+	PrintDebugProc("編輯モード：%d \n\n", g_modePlayer);
 
 	PrintDebugProc("コントロールのパーツ番号：%d \n\n", g_conId);
 
@@ -1745,7 +1857,7 @@ void AnimeWalk(KEY g_anime[])
 {
 	g_keyMax = sizeof(g_animeWalk) / sizeof(KEY);//sizeof(g_anime)ではダメ
 
-	switch (g_mode)
+	switch (g_modePlayer)
 	{
 	case MODE_PLAY:
 	{
@@ -1977,7 +2089,7 @@ void AnimeWalk(KEY g_anime[])
 
 void AnimeKen(KEY g_anime[])
 {
-	if (g_animeStateKen == 0)
+	if ((g_animeStateKen == 0) && (g_player.state != FROZEN))
 	{
 		if (GetKeyboardPress(DIK_J))
 		{
@@ -2031,7 +2143,7 @@ void AnimeKen(KEY g_anime[])
 		FrameFeedVec(&g_player.part[j].srt.rot, g_anime[i].key[j].rot, g_anime[i + 1].key[j].rot, g_motionTime2 - i);
 
 		// Position
-		AnimePosAndHitjudge(&g_player.part[j].srt.pos, mtxWorld, mtxBuff, g_anime[i].key[j].pos , g_anime[i + 1].key[j].pos, g_motionTime2 - i, PART_MAX_ENEMY, g_enemy.part[i], HIT_THROW_SWORD);
+		AnimePosAndHitjudge(&g_player.part[j].srt.pos, mtxWorld, mtxBuff, g_anime[i].key[j].pos , g_anime[i + 1].key[j].pos, g_motionTime2 - i, PART_MAX_ENEMY, g_enemy.part, HIT_THROW_SWORD);	//マイ変更
 
 		// PrintDebugProc("aaaaaa：%f ,%f ,%f  \n", current_pos.x, current_pos.y, current_pos.z);
 
@@ -2042,7 +2154,7 @@ void AnimeKen(KEY g_anime[])
 
 void AnimeKen3(KEY g_anime[])
 {
-	if (g_animeStateKen3 == 0)
+	if ((g_animeStateKen3 == 0) && (g_player.state != FROZEN))
 	{
 		if (GetKeyboardPress(DIK_K))
 		{
@@ -2079,7 +2191,10 @@ void AnimeKen3(KEY g_anime[])
 			g_motionTime = 0.0f;		//着地時、走る時間リセット	ジャンプと走るモーションがスムーズにつながるポイント！
 		}
 
-		g_motionTime3 += dt;
+		if (g_player.state != FROZEN)
+		{
+			g_motionTime3 += dt;
+		}
 
 		if (g_motionTime3 > g_keyMax - 1.0f)//最大時間を超えたら
 		{
@@ -2158,9 +2273,9 @@ void FrameFeedVec(D3DXVECTOR3 *af_vec, D3DXVECTOR3 bf_vec, D3DXVECTOR3 move_vec,
 
 void AnimeKen4(KEY g_anime[])
 {
-	if (g_animeStateKen4 == 0)
+	if ((g_animeStateKen4 == 0) && (g_player.state != FROZEN))
 	{
-		if (GetKeyboardPress(DIK_H))
+		if (GetKeyboardPress(DIK_L))
 		{
 			g_animeStateKen4 = 1;//動く状態にする	
 			g_motionTime4 = 0.0f;
@@ -2194,8 +2309,10 @@ void AnimeKen4(KEY g_anime[])
 			g_motionTime = 0.0f;		//着地時、走る時間リセット	ジャンプと走るモーションがスムーズにつながるポイント！
 		}
 
-
-		g_motionTime4 += dt;
+		if (g_player.state != FROZEN)
+		{
+			g_motionTime4 += dt;
+		}
 
 		if (g_motionTime4 > g_keyMax - 1.0f)//最大時間を超えたら
 		{

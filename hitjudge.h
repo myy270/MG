@@ -34,7 +34,7 @@
 #define HIT_WALL_SECOND (9.9)
 
 
-void AnimePosAndHitjudge(D3DXVECTOR3 *af_vec, D3DXMATRIX world, D3DXMATRIX buff, D3DXVECTOR3 bf_vec, D3DXVECTOR3 move_vec, float motionTime, float part, PART opponent, float length);
+void AnimePosAndHitjudge(D3DXVECTOR3 *af_vec, D3DXMATRIX world, D3DXMATRIX buff, D3DXVECTOR3 bf_vec, D3DXVECTOR3 move_vec, float motionTime, float part, PART* opponent, float length);	//É}ÉCïœçX PART*
 
 
 // ïêäÌÇÃìñÇΩÇËîªíË

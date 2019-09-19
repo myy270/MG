@@ -7,7 +7,7 @@
 #include "player.h"
 #include "hitjudge.h"
 #include "enemy.h"
-
+#include "score.h"
 #include "field_star.h"
 
 //*****************************************************************************
@@ -15,16 +15,19 @@
 //*****************************************************************************
 
 
-//#include "field_star.h"
-
 // 壁の当たり判定
 D3DXVECTOR3 CollideGeo(D3DXVECTOR3* m_A, D3DXVECTOR3 move, LPD3DXMESH* pThingB3D)
 {
 	//当たり判定
 	FLOAT fDistance = 0.0f;
 	D3DXVECTOR3	 vNormal = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-	D3DXMATRIX tempMatrix;
+	D3DXMATRIX tempMatrix;	
 	D3DXMatrixIdentity(&tempMatrix);
+
+	//星フィールドが拡大されるとき
+	//D3DXMATRIX mtxScl;
+	//D3DXMatrixScaling(&mtxScl, 2.0f, 2.0f, 2.0f);
+	//D3DXMatrixMultiply(&tempMatrix, &tempMatrix, &mtxScl);
 
 	if (Collide(*m_A, move, &fDistance, &vNormal, pThingB3D, &tempMatrix) == TRUE && fDistance <= HIT_WALL_FIRST)
 	{
@@ -42,7 +45,7 @@ D3DXVECTOR3 CollideGeo(D3DXVECTOR3* m_A, D3DXVECTOR3 move, LPD3DXMESH* pThingB3D
 	return move;
 }
 
-void AnimePosAndHitjudge(D3DXVECTOR3 *af_vec, D3DXMATRIX world, D3DXMATRIX buff, D3DXVECTOR3 bf_vec, D3DXVECTOR3 move_vec, float motionTime, float part , PART opponent,  float length)
+void AnimePosAndHitjudge(D3DXVECTOR3 *af_vec, D3DXMATRIX world, D3DXMATRIX buff, D3DXVECTOR3 bf_vec, D3DXVECTOR3 move_vec, float motionTime, float part , PART* opponent,  float length)
 {
 	D3DXVECTOR3 move;
 	D3DXVECTOR3 current_pos = *af_vec;
@@ -52,11 +55,13 @@ void AnimePosAndHitjudge(D3DXVECTOR3 *af_vec, D3DXMATRIX world, D3DXMATRIX buff,
 
 	move = ReturnLocalToWorldVec(world, buff, current_pos);
 	current_pos = ReturnLocalToWorldVec(world, buff, *af_vec);
-	move = move - current_pos;
+	//move = move - current_pos;
+	D3DXVECTOR3 ray = current_pos - move;		//マイ変更
 
 	for (int i = 0; i < part; i++)
 	{
-		CollideAttack(&current_pos, move, &opponent, length);
+		//CollideAttack(&current_pos, move, &opponent, length);
+		CollideAttack(&move, ray, opponent + i, length);		//マイ変更
 	}
 }
 
@@ -80,6 +85,7 @@ BOOL CollideAttack(D3DXVECTOR3* m_A, D3DXVECTOR3 move, PART* part, float length)
 
 	if (Collide(*m_A, move, &fDistance, &vNormal, &part->pMesh, &part->mtxWorld) == TRUE && fDistance <= length)
 	{
+		ChangeScore(-10);
 		return TRUE;
 	}
 

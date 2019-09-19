@@ -17,18 +17,18 @@
 #include "explosion.h"
 #include "life.h"
 #include "timer.h"
-//#include "score.h"
+#include "score.h"
 #include "item.h"
 #include "field_star.h"
-//#include "sound.h"
+#include "sound.h"
 
 
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define TIMESET			(999)	//タイマーの時間
+#define TIMESET			(50)	//タイマーの時間
 
-
+//extern int g_next_stage;
 
 
 
@@ -47,6 +47,8 @@
 //=============================================================================
 HRESULT InitGame(void)
 {
+	
+
 	// ライトの初期化
 	InitLight();
 
@@ -133,10 +135,15 @@ HRESULT InitGame(void)
 	ResetTimer(TIMESET);
 
 	// スコアの初期化
-	//InitScore();
+	InitScore();
 
 	// アイテムの初期化
 	InitItem();
+
+	
+
+
+
 	for(int nCntCoin = 0; nCntCoin < 99; nCntCoin++)
 	{
 		float fPosX, fPosY, fPosZ;
@@ -148,8 +155,21 @@ HRESULT InitGame(void)
 		SetItem(D3DXVECTOR3(fPosX, fPosY, fPosZ),  D3DXVECTOR3(0.0f, 0.0f, 0.0f), ITEMTYPE_COIN, true);
 	}
 
-	// BGM再生 ちゃんとloopできるにする!　元の罠
-	//PlaySound(SOUND_LABEL_BGM000, XAUDIO2_LOOP_INFINITE);
+	if (GetMode() == MODE_GAME)
+	{
+		StopSound(SOUND_LABEL_BGM001);
+
+		// BGM再生 ちゃんとloopできるにする!　元の罠
+		PlaySound(SOUND_LABEL_BGM000, XAUDIO2_LOOP_INFINITE);
+	}
+
+	if (GetMode() == STAGE01)
+	{
+		StopSound(SOUND_LABEL_BGM000);
+		// BGM再生 ちゃんとloopできるにする!　元の罠
+		PlaySound(SOUND_LABEL_BGM001, XAUDIO2_LOOP_INFINITE);
+	}
+
 
 	return S_OK;
 }
@@ -195,13 +215,13 @@ void UninitGame(void)
 	UninitTimer();
 
 	// スコアの終了処理
-	//UninitScore();
+	UninitScore();
 
 	// アイテムの終了処理
 	UninitItem();
 
 	// BGM停止 !!元の罠
-	//StopSound(SOUND_LABEL_BGM000);
+	StopSound(SOUND_LABEL_BGM001);
 }
 
 //=============================================================================
@@ -243,15 +263,18 @@ void UpdateGame(void)
 	// ライフ処理の更新
 	UpdateLife();
 
-	// タイマー処理の更新
-	UpdateTimer();
+	if (GetMode() != MODE_GAME)
+	{
 
-	// スコア処理の更新
-	//UpdateScore();
+		// タイマー処理の更新
+		UpdateTimer();
 
-	// アイテム処理の更新
-	UpdateItem();
+		// スコア処理の更新
+		UpdateScore();
 
+		// アイテム処理の更新
+		UpdateItem();
+	}
 
 }
 
@@ -263,43 +286,53 @@ void DrawGame(void)
 	// カメラの設定
 	SetCamera();
 
-	// 地面処理の描画
-	DrawMeshField();
-	DrawFieldStarModel();
-	// 影処理の描画
-	//DrawShadow();
+	if (GetMode() != MODE_GAME)
+	{
+		// 地面処理の描画
+		DrawMeshField();
+
+		// 影処理の描画
+		DrawShadow();
+	}
 
 	// プレイヤー処理の描画
 	DrawPlayer();
 
-	DrawEnemy();
+	
+	if (GetMode() != MODE_GAME)
+	{
+		// 壁処理の描画
+		DrawEnemy();
+
+		// アイテム処理の描画
+		DrawItem();
+	}
 
 
-	//if () 
-	//{
-	//// アイテム処理の描画
-	////DrawItem();
-	//}
+	if (GetMode() != MODE_GAME)
+	{
+		// 壁処理の描画
+		DrawMeshWall();
+	}
 
-	// 弾処理の描画
-	DrawBullet();
 
-	// エフェクト処理の描画
-	//DrawEffect();
 
-	// 壁処理の描画
-	//DrawMeshWall();
+	if (GetMode() == MODE_GAME)
+	{
+		DrawFieldStarModel();
+	}
+	
 
-	// 爆発処理の描画
-	DrawExplosion();
+	if (GetMode() != MODE_GAME)
+	{
+		// タイマー処理の描画
+		DrawTimer();
 
-	// ライフ処理の描画
-	//DrawLife();
+		// スコア処理の描画
+		DrawScore();
+	}
 
-	// タイマー処理の描画
-	DrawTimer();
 
-	// スコア処理の描画
-	//DrawScore();
+	
 }
 

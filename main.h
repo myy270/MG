@@ -21,7 +21,7 @@
 
 #define DIRECTINPUT_VERSION (0x0800)
 #include "dinput.h"			// DirectInput関連のヘッダー
-//#include "xaudio2.h"		// XAudio2関連のヘッダー !!!
+#include "xaudio2.h"		// XAudio2関連のヘッダー !!!
 
 
 //*****************************************************************************
@@ -78,14 +78,11 @@ typedef struct
 //*************************************
 typedef enum				//!!!
 {
-	STAGE01 = 1,
-	STAGE02,
-	STAGE03,
-	STAGE04,
-	STAGE05,
-	STAGE06,
-	MODE_TITLE = 10,			// タイトル画面
-	MODE_GAME,				// ゲーム画面
+	
+
+	MODE_TITLE,			// タイトル画面
+	MODE_GAME,				// 星フィールド　画面
+	STAGE01,			//白虎の部屋
 	MODE_RESULT,			// リザルト画面
 	MODE_MAX
 } MODE;
